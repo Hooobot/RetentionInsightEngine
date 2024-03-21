@@ -53,3 +53,38 @@
 .uploadContainer {
   font-family: "Poppins", sans-serif;
 }
+
+.title {
+  font-size: 2.5rem;
+}
+/* CSS Adaptation for tablets */
+@media (max-width: 768px) {
+  .title {
+    font-size: 2rem;
+  }
+
+  .logo {
+    max-width: 120px;
+  }
+
+  .uploadContainer {
+    width: 80%;
+    padding: 15px;
+  }
+}
+
+/* CSS Adaptation for phones */
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .logo {
+    max-width: 100px;
+  }
+
+  .uploadContainer {
+    width: 90%;
+    padding: 10px;
+  }
+}
