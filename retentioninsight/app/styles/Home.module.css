@@ -35,3 +35,22 @@
   width: 400px;
   text-align: center;
 }
+
+.uploadContainer {
+  border: 2px dashed #92c7cf;
+  padding: 20px;
+  width: 400px;
+  text-align: center;
+  cursor: pointer;
+  transition: border 0.24s ease-in-out;
+}
+
+.uploadContainer:hover {
+  border-color: #74c7ec;
+}
+
+/* Adjust the font-family directly or use the class */
+.title,
+.uploadContainer {
+  font-family: "Poppins", sans-serif;
+}
