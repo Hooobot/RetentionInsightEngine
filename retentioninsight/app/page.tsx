@@ -1,9 +1,12 @@
+// Start with client-side rendering
 "use client";
+
 // Import necessary hooks and components
 import React, { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import type { NextPage } from "next";
 import Head from "next/head";
+import Image from "next/image";
 import styles from "./styles/Home.module.css";
 import logo from "./RIE_Logo.png";
 
@@ -19,24 +22,17 @@ const Home: NextPage = () => {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: [".mp3", ".mp4"],
+    // Directly specify file extensions
+    accept: {
+      "audio/mp3": [".mp3"],
+      "video/mp4": [".mp4"],
+    },
   });
 
   return (
     <div className={styles.container}>
-      <Head>
-        <title>Retention Insight Engine</title>
-        <meta name="description" content="Your go-to solution for insights" />
-        <link rel="icon" href="/favicon.ico" />
-        {/* Google Fonts */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </Head>
-
       <main className={styles.main}>
-        <img src={logo.src} alt="Logo" className={styles.logo} />
+        <Image src={logo} alt="Retention Insight Engine" />
         <h1 className={styles.title}>Retention Insight Engine</h1>
 
         <div {...getRootProps()} className={styles.uploadContainer}>
@@ -48,7 +44,6 @@ const Home: NextPage = () => {
           )}
         </div>
 
-        {/* Lists uploaded file */}
         <aside>
           <br />
           <h4>Files</h4>
