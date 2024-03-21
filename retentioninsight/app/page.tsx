@@ -16,7 +16,6 @@ const Home: NextPage = () => {
 
   // Handler for file drops
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    // Do something with the files
     setFiles(acceptedFiles);
   }, []);
 
