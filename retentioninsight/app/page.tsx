@@ -1,8 +1,7 @@
-// pages/index.tsx
 import type { NextPage } from "next";
 import Head from "next/head";
 import styles from "./styles/Home.module.css";
-import logo from "./RIE_Logo.webp";
+import logo from "./RIE_Logo.png";
 
 const Home: NextPage = () => {
   return (
