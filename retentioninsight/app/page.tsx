@@ -2,7 +2,7 @@
 "use client";
 
 // Import necessary hooks and components
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import type { NextPage } from "next";
 import Head from "next/head";
@@ -35,6 +35,33 @@ const Home: NextPage = () => {
       "video/mp4": [".mp4"],
     },
   });
+
+  //used to check GET endpoints to Flask backend server
+  function fetchData() {
+    fetch('http://localhost:5000/api/download-and-convert')
+      .then(response => response.json())
+      .then(data => console.log(data));
+  }
+
+  //template function to run python conversion and summarization scripts in the backend
+  function sendData(data: string) {
+    fetch('http://localhost:5000/api/download-and-convert', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => console.log(data));
+  }
+  
+  useEffect(() => {
+    //run the GET function to confirm connection from Client-side
+    fetch('http://localhost:5000/api/download-and-convert')
+      .then(response => response.json())
+      .then(data => console.log(data));
+}, []);
 
   return (
     <div className={styles.container}>
