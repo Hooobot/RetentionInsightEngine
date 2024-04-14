@@ -15,27 +15,11 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  /* font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif; */
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.title {
-  color: #92c7cf;
-  margin: 0;
-  line-height: 1.15;
-  font-size: 4rem;
-}
-
-.logo {
-  max-width: 150px;
-  margin-bottom: 2rem;
-}
-
-.dropzone {
-  border: 2px dashed #92c7cf;
-  padding: 20px;
-  width: 400px;
-  text-align: center;
-}
-
+.dropzone,
 .uploadContainer {
   border: 2px dashed #92c7cf;
   padding: 20px;
@@ -49,14 +33,43 @@
   border-color: #74c7ec;
 }
 
-.title,
-.uploadContainer {
-  font-family: "Poppins", sans-serif;
+.title {
+  margin: 0;
+  line-height: 1.15;
+  color: #92c7cf;
+  padding-bottom: 1rem;
+  font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
 }
 
-.title {
-  font-size: 2.5rem;
+.dragActive {
+  border-color: var(--primary);
+  background-color: rgba(116, 199, 236, 0.1);
 }
+
+.submitButton {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 10px 20px;
+  margin-top: 10px;
+  cursor: pointer;
+  font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+}
+
+.submitButton:disabled {
+  background-color: grey;
+  cursor: not-allowed;
+}
+
+.summary {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #181825;
+  color: white;
+  border-radius: var(--border-radius);
+}
+
 /* CSS Adaptation for tablets */
 @media (max-width: 768px) {
   .title {
