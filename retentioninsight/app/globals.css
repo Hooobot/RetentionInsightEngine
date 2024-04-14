@@ -8,8 +8,8 @@
     "Fira Mono", "Droid Sans Mono", "Courier New", monospace;
 
   --background: #1e1e2e;
-  --foreground: #74c7ec;
-  --primary: #b4befe;
+  --foreground: #b4befe;
+  --primary: #74c7ec;
   --text: #cdd6f4;
 }
 
@@ -48,10 +48,14 @@ button:hover {
 /* Navbar  */
 .navbar {
   display: flex;
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
+  z-index: 1000;
   background-color: #181825;
   color: white;
   font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
