@@ -2,3 +2,6 @@
 converted_file.wav
 audio_chunks/*
 .vercel
+
+# MacOS
+.DS_Store
