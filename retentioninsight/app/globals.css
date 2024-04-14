@@ -44,3 +44,57 @@ button {
 button:hover {
   opacity: 0.8;
 }
+
+/* Navbar  */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #181825;
+  color: white;
+  font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+}
+
+.logo-container {
+  position: relative;
+  width: 120px;
+  height: auto;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-link {
+  cursor: pointer;
+  transition: color 0.3s ease;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #74c7ec;
+}
+
+.nav-link:hover {
+  color: #b4befe;
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nav-links {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .nav-link {
+    padding: 0.5rem 0;
+  }
+}
