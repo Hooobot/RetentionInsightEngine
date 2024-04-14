@@ -48,6 +48,7 @@ button:hover {
 /* Navbar  */
 .navbar {
   display: flex;
+  position: relative;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
@@ -81,20 +82,100 @@ button:hover {
   text-decoration: underline;
 }
 
+/* Styles for Mobile Nav Toggle Button */
+.mobile-nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 1rem;
+  margin: -1rem;
+  z-index: 10;
+}
+
+/* Hamburger Icon Styles */
+.hamburger {
+  display: none;
+  background-color: var(--foreground);
+  width: 30px;
+  height: 3px;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+/* Pseudo-elements for top and bottom bars of the hamburger icon */
+.hamburger::before,
+.hamburger::after {
+  content: "";
+  display: block;
+  background-color: var(--foreground);
+  width: 100%;
+  height: 3px;
+  transition: transform 0.3s ease;
+}
+
+.hamburger::before {
+  transform: translateY(-8px);
+}
+.hamburger::after {
+  transform: translateY(8px);
+}
+
+/* Transforming hamburger icon into 'X' when active */
+.mobile-nav-toggle[aria-expanded="true"] .hamburger {
+  background-color: transparent;
+}
+
+.mobile-nav-toggle[aria-expanded="true"] .hamburger::before {
+  transform: rotate(45deg);
+}
+
+.mobile-nav-toggle[aria-expanded="true"] .hamburger::after {
+  transform: rotate(-45deg);
+}
+
+/* Responsive Styles for Navbar */
 @media (max-width: 768px) {
   .navbar {
-    flex-direction: column;
-    align-items: flex-start;
+    padding: 1rem;
+  }
+
+  .mobile-nav-toggle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .hamburger,
+  .hamburger::before,
+  .hamburger::after {
+    display: block;
   }
 
   .nav-links {
+    display: none;
     flex-direction: column;
-    align-items: flex-start;
     width: 100%;
-    gap: 0.5rem;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #181825;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
   }
 
   .nav-link {
-    padding: 0.5rem 0;
+    padding: 10px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    background-color: var(--foreground);
+    color: var(--background);
+  }
+
+  .nav-links.expanded {
+    display: flex;
+    visibility: visible;
   }
 }
