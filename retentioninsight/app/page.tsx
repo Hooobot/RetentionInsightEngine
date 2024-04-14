@@ -11,17 +11,25 @@ import styles from "./styles/Home.module.css";
 import logo from "../public/RIE_Logo.png";
 
 const Home: NextPage = () => {
-  // State to hold uploaded files
+  // State to hold uploaded files and submission status
   const [files, setFiles] = useState<File[]>([]);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   // Handler for file drops
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setFiles(acceptedFiles);
+    setIsSubmitted(false); // Reset submission state
   }, []);
+
+  // Handle file submission
+  const handleSubmit = () => {
+    // Implement your submission logic here
+    console.log("Processing files:", files);
+    setIsSubmitted(true);
+  };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    // Directly specify file extensions
     accept: {
       "audio/mp3": [".mp3"],
       "video/mp4": [".mp4"],
@@ -30,30 +38,52 @@ const Home: NextPage = () => {
 
   return (
     <div className={styles.container}>
+      <Head>
+        <title>Retention Insight Engine</title>
+      </Head>
       <main className={styles.main}>
         <Image src={logo} alt="Retention Insight Engine" />
         <h1 className={styles.title}>Retention Insight Engine</h1>
-
-        <div {...getRootProps()} className={styles.uploadContainer}>
+        <div
+          {...getRootProps()}
+          className={isDragActive ? styles.dragActive : styles.uploadContainer}
+        >
           <input {...getInputProps()} />
           {isDragActive ? (
             <p>Drop the files here ...</p>
           ) : (
-            <p>Drag 'n' drop some files here, or click to select files</p>
+            <p>
+              Drag and drop your MP3 or MP4 files here, or click to browse and
+              select files.
+            </p>
           )}
         </div>
-
-        <aside>
-          <br />
-          <h4>Files</h4>
-          <ul>
-            {files.map((file) => (
-              <li key={file.name}>
-                {file.name} - {file.size} bytes
-              </li>
-            ))}
-          </ul>
-        </aside>
+        {files.length > 0 && (
+          <aside>
+            <br />
+            <h4>Files ready for processing:</h4>
+            <ul>
+              {files.map((file) => (
+                <li key={file.name}>
+                  {file.name} - {file.size} bytes
+                </li>
+              ))}
+            </ul>
+            <button
+              className={styles.submitButton}
+              onClick={handleSubmit}
+              disabled={files.length === 0}
+            >
+              Submit for Processing
+            </button>
+          </aside>
+        )}
+        {isSubmitted && (
+          <div className={styles.summary}>
+            <h2>Processing Summary</h2>
+            {/* Display processing results here */}
+          </div>
+        )}
       </main>
     </div>
   );
