@@ -7,13 +7,7 @@ const Navbar = () => {
     <nav className="navbar">
       <div className="logo-container">
         <Link href="/">
-          <Image
-            src={RIE_Logo}
-            alt="RIE Logo"
-            width={70}
-            height={63}
-            objectFit="contain"
-          />
+          <Image src={RIE_Logo} alt="RIE Logo" width={70} height={63} />
         </Link>
       </div>
       <div className="nav-links">
