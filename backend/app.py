@@ -6,6 +6,10 @@ import report_summarization_script  # Assumes this script handles audio processi
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all domains on all routes (adjust in production)
 
+@app.route('/', methods=['GET'])
+def appCheck():
+    if request.method == 'GET':
+        return jsonify({'message': 'Retention Insight Engine Backend Server'})
 @app.route('/api/download-and-convert', methods=['POST', 'GET'])
 def download_and_convert():
     if request.method == 'GET':

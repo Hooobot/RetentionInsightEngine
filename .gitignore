@@ -9,3 +9,5 @@ audio_chunks/*
 
 /backend/venv
 /backend/__pycache__
+
+.idea
