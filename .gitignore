@@ -3,5 +3,11 @@ converted_file.wav
 audio_chunks/*
 .vercel
 
+
 # MacOS
 .DS_Store
+
+/backend/venv
+/backend/__pycache__
+
+.idea

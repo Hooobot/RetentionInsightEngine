@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:flask": "cd ../backend && pipenv run python app.py",
+    "dev:all": "concurrently \"npm run dev\" \"npm run dev:flask\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -19,6 +21,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "concurrently": "^8.2.2",
     "typescript": "^5"
   }
 }
