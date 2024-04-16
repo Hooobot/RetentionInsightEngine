@@ -46,19 +46,34 @@ def convert_and_chunk_audio(input_file, output_folder="audio_chunks", chunk_leng
     return chunks
 
 def analyze_sentiment(text):
+    # Load the tokenizer and sentiment-analysis pipeline
     tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+    
+    # Models for sentiment analysis
+    # Default model
     classifier = pipeline('sentiment-analysis', model="bert-base-uncased")
+    # Model based from product reviews
+    # classifier = pipeline('sentiment-analysis', model="nlptown/bert-base-multilingual-uncased-sentiment")
+    # Model based on Twitter data
+    # classifier = pipeline('sentiment-analysis', model="CardiffNLP/twitter-roberta-base-sentiment")
+    # classifier = pipeline('sentiment-analysis', model="bert-base-uncased-finetuned-sst-2-english")
+
+
+    # Tokenize the text into sentences
     sentences = sent_tokenize(text)
+    
     sentiment_results = []
     for sentence in sentences:
-        # Tokenize sentence to ensure it does not exceed model maximum length
+        # Check if the length of the tokens does not exceed the maximum size
         tokens = tokenizer.tokenize(sentence)
-        max_length = 510  # Account for special tokens
-        if len(tokens) > max_length:
-            tokens = tokens[:max_length]
+        if len(tokens) > 510:
+            tokens = tokens[:510]  # truncate tokens if they are too long
+        # Convert tokens back to string
         sentence_text = tokenizer.convert_tokens_to_string(tokens)
+        # Analyze sentiment of the sentence
         result = classifier(sentence_text)
         sentiment_results.extend(result)
+
     return sentiment_results
 
 # Example usage:
