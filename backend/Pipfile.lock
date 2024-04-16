@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "ebce9234609d3d97d4fa101af4b65cd118411aa5c7710a8bbc668c54d6cf5623"
+            "sha256": "de8ed943f75c925e89d05c38535f7c10475052e9dd8f3397c900587b6757d5a3"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -272,13 +272,6 @@
             ],
             "index": "pypi",
             "version": "==4.0.0"
-        },
-        "flask-uploads": {
-            "hashes": [
-                "sha256:53ecbd6033667d50ae02b63adebbaa33c7fc56c09e5293025810cf9d841ecb02"
-            ],
-            "index": "pypi",
-            "version": "==0.2.1"
         },
         "flatbuffers": {
             "hashes": [
@@ -902,7 +895,7 @@
                 "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3",
                 "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
             "version": "==2.9.0.post0"
         },
         "pytz": {
@@ -1203,7 +1196,7 @@
                 "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926",
                 "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
             "version": "==1.16.0"
         },
         "speechrecognition": {

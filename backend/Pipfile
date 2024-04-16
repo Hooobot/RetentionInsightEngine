@@ -17,7 +17,6 @@ torch = "*"
 torchvision = "*"
 torchaudio = "*"
 tensorflow = "*"
-flask-uploads = "*"
 
 [dev-packages]
 
