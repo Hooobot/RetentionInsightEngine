@@ -17,6 +17,7 @@ torch = "*"
 torchvision = "*"
 torchaudio = "*"
 tensorflow = "*"
+ffmpeg = "*"
 
 [dev-packages]
 

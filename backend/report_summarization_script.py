@@ -12,9 +12,13 @@ nltk.download('punkt')
 nltk.download('stopwords')
 
 def convert_audio(input_file):
-    sound = AudioSegment.from_mp3(input_file)
-    output_file = "converted_file.wav"
-    sound.export(output_file, format="wav")
+    try:
+        sound = AudioSegment.from_mp3(input_file)
+        output_file = "converted_file.wav"
+        sound.export(output_file, format="wav")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
     return output_file
 
 def transcribe_audio(file_path):

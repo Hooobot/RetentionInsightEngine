@@ -9,7 +9,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all domains on all routes (adjust in production)
 
 # Configuration
-UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../backend/file-uploads')
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'file-uploads')
 ALLOWED_EXTENSIONS = {'mp4', 'mp3'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -33,11 +33,24 @@ def upload_file():
         if not os.path.exists(UPLOAD_FOLDER):
             os.makedirs(UPLOAD_FOLDER)
         filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         try:
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            file.save(filepath)
         except Exception as e:
             app.logger.error(f'Failed to save file: {str(e)}')
             return jsonify(error='Failed to save file'), 500
+
+        # if os.path.isfile(filepath):
+        #     return jsonify({'message': os.path.exists(filepath)}), 200
+
+        try:
+            converted_file = report_summarization_script.convert_audio(filepath)
+            transcribed_text = report_summarization_script.transcribe_audio(converted_file)
+            sentiment_results = report_summarization_script.analyze_sentiment(transcribed_text)
+            return jsonify({'sentiments': sentiment_results}), 200
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
         return jsonify(message=f'File {filename} uploaded successfully'), 200
     else:
         return jsonify(error='File type not allowed'), 400

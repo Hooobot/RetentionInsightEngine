@@ -9,5 +9,6 @@ audio_chunks/*
 
 /backend/venv
 /backend/__pycache__
+/backend/Pipfile.lock
 
 .idea

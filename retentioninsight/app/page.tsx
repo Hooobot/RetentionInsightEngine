@@ -94,7 +94,7 @@ const Home: NextPage = () => {
             <ul>
               {files.map((file) => (
                 <li key={file.name}>
-                  {file.name} - {(file.size * (10**-6)).toFixed(2)} bytes
+                  {file.name} - {(file.size * (10**-6)).toFixed(2)} MB
                 </li>
               ))}
             </ul>
