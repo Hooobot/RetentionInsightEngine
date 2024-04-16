@@ -25,6 +25,8 @@ const Home: NextPage = () => {
   const handleSubmit = () => {
     // Implement your submission logic here
     console.log("Processing files:", files);
+    console.log(files[0]);
+    uploadData(files[0]);
     setIsSubmitted(true);
   };
 
@@ -44,23 +46,23 @@ const Home: NextPage = () => {
   }
 
   //template function to run python conversion and summarization scripts in the backend
-  function sendData(data: string) {
-    fetch('http://localhost:5000/api/download-and-convert', {
+  function uploadData(data: File) {
+    console.log('in here')
+
+    const formData = new FormData();
+    formData.append('file', data);
+
+    fetch('http://localhost:5000/api/upload', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data)
+      body: formData
     })
-    .then(response => response.json())
+    .then(response => response.json() )
     .then(data => console.log(data));
   }
-  
+
   useEffect(() => {
     //run the GET function to confirm connection from Client-side
-    fetch('http://localhost:5000/api/download-and-convert')
-      .then(response => response.json())
-      .then(data => console.log(data));
+    fetchData();
 }, []);
 
   return (
@@ -92,7 +94,7 @@ const Home: NextPage = () => {
             <ul>
               {files.map((file) => (
                 <li key={file.name}>
-                  {file.name} - {file.size} bytes
+                  {file.name} - {(file.size * (10**-6)).toFixed(2)} bytes
                 </li>
               ))}
             </ul>

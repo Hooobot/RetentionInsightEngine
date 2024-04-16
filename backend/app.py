@@ -1,13 +1,49 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
+from werkzeug.utils import secure_filename
 import yt_video_to_mp3  # Assumes this script handles YouTube downloading and MP3 conversion
 import report_summarization_script  # Assumes this script handles audio processing and sentiment analysis
+import os
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all domains on all routes (adjust in production)
 
+# Configuration
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../backend/file-uploads')
+ALLOWED_EXTENSIONS = {'mp4', 'mp3'}
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000  # 16 MB limit
+
+def allowed_file(filename):
+    return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/api/upload', methods=['POST'])
+def upload_file():
+    # Check if the post request has the file part
+    if 'file' not in request.files:
+        return jsonify(error='No file part'), 400
+    file = request.files['file']
+
+    # If user does not select file, browser also submits an empty part without filename
+    if file.filename == '':
+        return jsonify(error='No selected file'), 400
+    if file and allowed_file(file.filename):
+        if not os.path.exists(UPLOAD_FOLDER):
+            os.makedirs(UPLOAD_FOLDER)
+        filename = secure_filename(file.filename)
+        try:
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        except Exception as e:
+            app.logger.error(f'Failed to save file: {str(e)}')
+            return jsonify(error='Failed to save file'), 500
+        return jsonify(message=f'File {filename} uploaded successfully'), 200
+    else:
+        return jsonify(error='File type not allowed'), 400
+
 @app.route('/', methods=['GET'])
-def appCheck():
+def app_check():
     if request.method == 'GET':
         return jsonify({'message': 'Retention Insight Engine Backend Server'})
 @app.route('/api/download-and-convert', methods=['POST', 'GET'])
@@ -25,11 +61,13 @@ def download_and_convert():
             return jsonify({'error': str(e)}), 500
 
 @app.route('/api/process-audio', methods=['POST', 'GET'])
+@cross_origin()
 def process_audio():
     if request.method == 'GET':
         return jsonify({'message': 'GET request received. Send a POST request with an audio file path to process.'})
     elif request.method == 'POST':
-        audio_file = request.json.get('audio_file')
+        audio_file = request.files['file']
+        # return jsonify({'message': 'we were here'})
         if not audio_file:
             return jsonify({'error': 'No audio file provided'}), 400
         try:
