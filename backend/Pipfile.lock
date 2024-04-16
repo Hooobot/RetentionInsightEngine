@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "de8ed943f75c925e89d05c38535f7c10475052e9dd8f3397c900587b6757d5a3"
+            "sha256": "499cb7a9deb74e525b2c924258ea6a455691c0518728dbbc584f347b8c4b169d"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -247,6 +247,13 @@
             ],
             "markers": "platform_system == 'Windows'",
             "version": "==0.4.6"
+        },
+        "ffmpeg": {
+            "hashes": [
+                "sha256:6931692c890ff21d39938433c2189747815dca0c60ddc7f9bb97f199dba0b5b9"
+            ],
+            "index": "pypi",
+            "version": "==1.4"
         },
         "filelock": {
             "hashes": [
@@ -644,7 +651,7 @@
                 "sha256:f870204a840a60da0b12273ef34f7051e98c3b5961b61b0c2c1be6dfd64fbcd3",
                 "sha256:ffa75af20b44f8dba823498024771d5ac50620e6915abac414251bd971b4529f"
             ],
-            "markers": "python_version >= '3.9'",
+            "markers": "python_version >= '3.12'",
             "version": "==1.26.4"
         },
         "opt-einsum": {
