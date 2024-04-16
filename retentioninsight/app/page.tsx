@@ -2,7 +2,7 @@
 "use client";
 
 // Import necessary hooks and components
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import type { NextPage } from "next";
 import Head from "next/head";
@@ -25,6 +25,8 @@ const Home: NextPage = () => {
   const handleSubmit = () => {
     // Implement your submission logic here
     console.log("Processing files:", files);
+    console.log(files[0]);
+    uploadData(files[0]);
     setIsSubmitted(true);
   };
 
@@ -35,6 +37,33 @@ const Home: NextPage = () => {
       "video/mp4": [".mp4"],
     },
   });
+
+  //used to check GET endpoints to Flask backend server
+  function fetchData() {
+    fetch('http://localhost:5000/api/download-and-convert')
+      .then(response => response.json())
+      .then(data => console.log(data));
+  }
+
+  //template function to run python conversion and summarization scripts in the backend
+  function uploadData(data: File) {
+    console.log('in here')
+
+    const formData = new FormData();
+    formData.append('file', data);
+
+    fetch('http://localhost:5000/api/upload', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json() )
+    .then(data => console.log(data));
+  }
+
+  useEffect(() => {
+    //run the GET function to confirm connection from Client-side
+    fetchData();
+}, []);
 
   return (
     <div className={styles.container}>
@@ -65,7 +94,7 @@ const Home: NextPage = () => {
             <ul>
               {files.map((file) => (
                 <li key={file.name}>
-                  {file.name} - {file.size} bytes
+                  {file.name} - {(file.size * (10**-6)).toFixed(2)} bytes
                 </li>
               ))}
             </ul>
