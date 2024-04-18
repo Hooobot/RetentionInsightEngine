@@ -28,7 +28,7 @@ def add_punctuations(text_file, filename):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
-    with open(output_folder + '/' + os.path.splitext(filename)[0] + '-transcription', 'w') as file:
+    with open(output_folder + '/' + os.path.splitext(filename)[0] + 'transcription.txt', 'w') as file:
         file.write(str(result))
     
     return str(result)
@@ -136,11 +136,11 @@ def extract_entities(text, filename, keywords=["employee", "HR", "vacancies", "r
         if found_entities:
             relevant_entities.append((sentence, found_entities))
 
-            output_folder = output_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'name-entities')
+            output_folder = output_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'entity-extractions')
             if not os.path.exists(output_folder):
                 os.makedirs(output_folder)
 
-            with open(output_folder + '/' + os.path.splitext(filename)[0] + '-entity-extraction', 'w') as file:
+            with open(output_folder + '/' + os.path.splitext(filename)[0] + 'entityextraction.txt', 'w') as file:
                 for sentence, entities in relevant_entities:
                     file.write(f"Sentence: {sentence}\nEntities: {', '.join(entities)}\n")
 

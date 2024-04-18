@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, Response
 from flask_cors import CORS, cross_origin
 from werkzeug.utils import secure_filename
 import yt_video_to_mp3  # Assumes this script handles YouTube downloading and MP3 conversion
@@ -12,6 +12,8 @@ CORS(app)  # Enable CORS for all domains on all routes (adjust in production)
 # Configuration
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'file-uploads')
 IMAGE_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'word-clouds')
+EXTRACTION_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'entity-extractions')
+TRANSCRIPTION_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'transcriptions')
 ALLOWED_EXTENSIONS = {'mp4', 'mp3'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -40,6 +42,38 @@ def get_image(filename):
 
     # Serve the file from the specified folder
     return send_from_directory(IMAGE_FOLDER, filename)
+
+@app.route('/api/entity-extractions/<filename>', methods=['GET'])
+def get_extraction(filename):
+    # Complete file path
+    file_path = os.path.join(EXTRACTION_FOLDER, filename)
+    
+    # Check if file exists
+    if not os.path.isfile(file_path):
+        return jsonify({'error': 'does not exist'}), 404
+    
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+            return Response(content, mimetype='text/plain')
+    except Exception as e:
+        return str(e), 500
+
+@app.route('/api/transcriptions/<filename>', methods=['GET'])
+def get_transcription(filename):
+    # Complete file path
+    file_path = os.path.join(TRANSCRIPTION_FOLDER, filename)
+    
+    # Check if file exists
+    if not os.path.isfile(file_path):
+        return jsonify({'error': 'does not exist'}), 404
+
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+            return Response(content, mimetype='text/plain')
+    except Exception as e:
+        return str(e), 500
 
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
