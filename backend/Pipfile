@@ -17,7 +17,11 @@ torch = "*"
 torchvision = "*"
 torchaudio = "*"
 tensorflow = "*"
-flask-uploads = "*"
+ffmpeg = "*"
+matplotlib = "*"
+"google.cloud" = "*"
+deepmultilingualpunctuation = "*"
+wordcloud = "*"
 
 [dev-packages]
 
