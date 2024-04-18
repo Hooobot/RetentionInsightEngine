@@ -17,6 +17,7 @@ const Home: NextPage = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [transcription, setTranscription] = useState('');
   const [processed, setProcessed] = useState(true);
+  const [sentiment, setSentiment] = useState([]);
 
   // Handler for file drops
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -61,7 +62,7 @@ const Home: NextPage = () => {
       body: formData
     })
     .then(response => response.json())
-      .then(data => {setTranscription(data.transcription); setIsSubmitted(true);})
+      .then(data => {setTranscription(data.transcription); setSentiment(data.sentiments); setIsSubmitted(true);})
   }
 
   function getTranscription(filename: string) {
@@ -76,8 +77,8 @@ const Home: NextPage = () => {
 
   function getWordCloud(filename: string) {
     let newFileName = filename.replace(/ /g, '_');
-    newFileName = newFileName.substring(0, newFileName.length-4)
-    console.log(newFileName);
+    newFileName = newFileName.replace(/(\.[^/.]+)$/, "");
+    newFileName = newFileName.replace(/[()]/g, "");
     console.log(`http://localhost:5000/api/word-clouds/${newFileName}wordcloud.png`);
     return (`http://localhost:5000/api/word-clouds/${newFileName}wordcloud.png`);
   }
@@ -138,10 +139,27 @@ const Home: NextPage = () => {
           </aside>
         )}
         {isSubmitted ? 
-          <div className={styles.summary}>
-            <h2 className={styles.description}>Transcription</h2>
-            <p>{transcription}</p>
-            <Image src={getWordCloud(files[0].name)} width={800} height={400} alt={`${files[0].name}-word-cloud`}/>
+          <div>
+            <div className={styles.summary}>
+              <h2 className={styles.description}>Transcription</h2>
+              <p>{transcription}</p>
+            </div>
+            <div className={styles.summary}>
+              <h2 className={styles.description}>Word Cloud</h2>
+              <Image src={getWordCloud(files[0].name)} width={800} height={400} alt={`${files[0].name}-word-cloud`}/>
+            </div>
+            <div className={styles.summary}>
+              <h2 className={styles.description}>Sentiment Analysis</h2>
+              {sentiment.map((s) => {
+                  return(
+                    <div key={s[0]} className={styles.summary}>
+                      <h2 className={styles.description}>Sentence: {s[0]}</h2>
+                      <h2 className={styles.description}>Label: {s[1]['label']}</h2>
+                      <h2 className={styles.description}>Score: {s[1]['score']}</h2>
+                    </div>
+                  )
+                })}
+            </div>
           </div>
         : 
         <div>
