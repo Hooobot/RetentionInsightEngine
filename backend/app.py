@@ -27,18 +27,18 @@ def allowed_file(filename):
 def check():
     return jsonify({'message': report_summarization_script.check()}),200
 
-@app.route('/word-clouds/<filename>', methods=['GET'])
+@app.route('/api/word-clouds/<filename>', methods=['GET'])
 def get_image(filename):
     # Ensure the file exists and is a PNG file to prevent directory traversal attacks
     if not filename.endswith('.png'):
-        return jsonify({'error': str(e)}), 404
+        return jsonify({'error': 'does not exist'}), 404
     
     # Complete file path
     file_path = os.path.join(IMAGE_FOLDER, filename)
     
     # Check if file exists
     if not os.path.isfile(file_path):
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': 'does not exist'}), 500
 
     # Serve the file from the specified folder
     return send_from_directory(IMAGE_FOLDER, filename)
@@ -107,7 +107,7 @@ def upload_file():
 
             report_summarization_script.generate_word_cloud(punctuated_text, filename)
 
-            return jsonify({'sentiments': top_results}), 200
+            return jsonify({'sentiments': top_results, 'transcription': punctuated_text}), 200
         except Exception as e:
             return jsonify({'error': str(e)}), 500
 
