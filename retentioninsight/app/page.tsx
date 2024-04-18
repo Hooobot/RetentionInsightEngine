@@ -9,13 +9,14 @@ import Head from "next/head";
 import Image from "next/image";
 import styles from "./styles/Home.module.css";
 import logo from "../public/RIE_Logo.png";
+import LoadingSpinner from "../components/ui/Loading/LoadingSpinner";
 
 const Home: NextPage = () => {
   // State to hold uploaded files and submission status
   const [files, setFiles] = useState<File[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [transcription, setTranscription] = useState('');
-  const [processed, setProcessed] = useState(false);
+  const [processed, setProcessed] = useState(true);
 
   // Handler for file drops
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -28,6 +29,7 @@ const Home: NextPage = () => {
     // Implement your submission logic here
     // console.log("Processing files:", files);
     // console.log(files[0]);
+    setProcessed(false);
     processData(files[0]);
     // setIsSubmitted(true);
   };
@@ -98,6 +100,7 @@ const Home: NextPage = () => {
         <title>Retention Insight Engine</title>
       </Head>
       <main className={styles.main}>
+        {(!processed && !isSubmitted) && <LoadingSpinner/>}
         <Image src={logo} alt="Retention Insight Engine" />
         <h1 className={styles.title}>Retention Insight Engine</h1>
         <div
