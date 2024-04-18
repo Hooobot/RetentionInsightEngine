@@ -18,6 +18,10 @@ torchvision = "*"
 torchaudio = "*"
 tensorflow = "*"
 ffmpeg = "*"
+matplotlib = "*"
+"google.cloud" = "*"
+deepmultilingualpunctuation = "*"
+wordcloud = "*"
 
 [dev-packages]
 

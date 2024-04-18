@@ -47,7 +47,7 @@ const Home: NextPage = () => {
 
   //template function to run python conversion and summarization scripts in the backend
   function uploadData(data: File) {
-    console.log('in here')
+    console.log('uploadData called')
 
     const formData = new FormData();
     formData.append('file', data);

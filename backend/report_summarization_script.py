@@ -5,11 +5,33 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize, sent_tokenize
 from pydub import AudioSegment
-from transformers import pipeline, AutoTokenizer
+from transformers import pipeline, AutoTokenizer, AutoModelForTokenClassification
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from wordcloud import WordCloud
+import argparse
+from deepmultilingualpunctuation import PunctuationModel
+# from google.cloud import speech
 
 # Ensure NLTK resources are downloaded
 nltk.download('punkt')
 nltk.download('stopwords')
+
+def add_punctuations(text_file, filename):  
+    # Load the punctuation model, for example, a fine-tuned BERT model
+    # punctuator = pipeline("text-generation", model="bert-base-uncased-punctuation")
+    model = PunctuationModel()
+
+    # Generate punctuated text
+    result = model.restore_punctuation(text_file)
+
+    output_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'transcriptions')
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    with open(output_folder + '/' + os.path.splitext(filename)[0] + '-transcription', 'w') as file:
+        file.write(str(result))
+    
+    return str(result)
 
 def convert_audio(input_file):
     try:
@@ -45,17 +67,30 @@ def convert_and_chunk_audio(input_file, output_folder="audio_chunks", chunk_leng
         chunks.append(chunk_name)
     return chunks
 
+def parallel_transcribe_audio(chunks):
+    transcriptions = []
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        future_to_chunk = {executor.submit(transcribe_audio, chunk): chunk for chunk in chunks}
+        for future in as_completed(future_to_chunk):
+            chunk = future_to_chunk[future]
+            try:
+                transcription = future.result()
+                transcriptions.append(transcription)
+            except Exception as exc:
+                print(f'Chunk {chunk} generated an exception: {exc}')
+    return " ".join(transcriptions)
+
 def analyze_sentiment(text):
     # Load the tokenizer and sentiment-analysis pipeline
     tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
     
     # Models for sentiment analysis
     # Default model
-    classifier = pipeline('sentiment-analysis', model="bert-base-uncased")
+    # classifier = pipeline('sentiment-analysis', model="bert-base-uncased")
     # Model based from product reviews
     # classifier = pipeline('sentiment-analysis', model="nlptown/bert-base-multilingual-uncased-sentiment")
     # Model based on Twitter data
-    # classifier = pipeline('sentiment-analysis', model="CardiffNLP/twitter-roberta-base-sentiment")
+    classifier = pipeline('sentiment-analysis', model="CardiffNLP/twitter-roberta-base-sentiment")
     # classifier = pipeline('sentiment-analysis', model="bert-base-uncased-finetuned-sst-2-english")
 
 
@@ -72,11 +107,74 @@ def analyze_sentiment(text):
         sentence_text = tokenizer.convert_tokens_to_string(tokens)
         # Analyze sentiment of the sentence
         result = classifier(sentence_text)
-        sentiment_results.extend(result)
+        # Pair each sentence with its result
+        sentiment_results.append((sentence, result[0]))  
 
     return sentiment_results
 
-# Example usage:
-# file_path = convert_audio('sample.mp3')
-# transcribed_text = transcribe_audio(file_path)
-# sentiment_analysis_results = analyze_sentiment(transcribed_text)
+def extract_entities(text, filename, keywords=["employee", "HR", "vacancies", "retention", "management"]):
+    # Load the tokenizer and model for named entity recognition
+    tokenizer = AutoTokenizer.from_pretrained("dbmdz/bert-large-cased-finetuned-conll03-english")
+    model = AutoModelForTokenClassification.from_pretrained("dbmdz/bert-large-cased-finetuned-conll03-english")
+    ner = pipeline("ner", model=model, tokenizer=tokenizer, aggregation_strategy="simple")
+
+    # Tokenize the text into sentences
+    sentences = sent_tokenize(text)
+    
+    
+    # Collecting relevant entities
+    relevant_entities = []
+    for sentence in sentences:
+        entities = ner(sentence)
+        found_entities = {entity['word'].lower() for entity in entities}
+
+        # Adding keyword matching
+        for word in sentence.split():
+            if word.lower() in keywords:
+                found_entities.add(word.lower())
+
+        if found_entities:
+            relevant_entities.append((sentence, found_entities))
+
+            output_folder = output_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'name-entities')
+            if not os.path.exists(output_folder):
+                os.makedirs(output_folder)
+
+            with open(output_folder + '/' + os.path.splitext(filename)[0] + '-entity-extraction', 'w') as file:
+                for sentence, entities in relevant_entities:
+                    file.write(f"Sentence: {sentence}\nEntities: {', '.join(entities)}\n")
+
+    return relevant_entities
+
+def generate_word_cloud(text, filename):
+    # Tokenize the text into words
+    words = word_tokenize(text.lower())
+    
+    # Load stop words
+    stop_words = set(stopwords.words('english'))
+    
+    # Additional common but irrelevant words could be filtered out
+    additional_stopwords = {'may', 'also', 'many', 'must', 'can', 'much', 'every', 'would', 'could', 'today', 'felt', 'us'}
+    stop_words.update(additional_stopwords)
+
+    # Filter out stopwords
+    filtered_words = [word for word in words if word not in stop_words and word.isalnum()]
+    
+    # Frequency distribution of words
+    freq_dist = nltk.FreqDist(filtered_words)
+    
+    output_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'word-clouds')
+    if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
+
+    wordcloud_name = os.path.splitext(filename)[0] + "wordcloud.png"
+    output_path = os.path.join(output_folder, wordcloud_name)
+
+    # Create word cloud
+    wordcloud = WordCloud(width=800, height=400, background_color ='white').generate_from_frequencies(freq_dist)
+    wordcloud.to_file(output_path)
+    # Display the WordCloud
+    # plt.figure(figsize=(10, 5))
+    # plt.imshow(wordcloud, interpolation='bilinear')
+    # plt.axis('off')
+    # plt.show()
