@@ -16,7 +16,7 @@ from deepmultilingualpunctuation import PunctuationModel
 nltk.download('punkt')
 nltk.download('stopwords')
 
-def add_punctuations(text_file, filename):  
+def add_punctuations(text_file, filename):
     # Load the punctuation model, for example, a fine-tuned BERT model
     # punctuator = pipeline("text-generation", model="bert-base-uncased-punctuation")
     model = PunctuationModel()
@@ -30,7 +30,7 @@ def add_punctuations(text_file, filename):
 
     with open(output_folder + '/' + os.path.splitext(filename)[0] + 'transcription.txt', 'w') as file:
         file.write(str(result))
-    
+
     return str(result)
 
 def convert_audio(input_file):
@@ -69,7 +69,8 @@ def convert_and_chunk_audio(input_file, output_folder="audio_chunks", chunk_leng
 
 def parallel_transcribe_audio(chunks):
     transcriptions = []
-    with ThreadPoolExecutor(max_workers=5) as executor:
+    workers = os.cpu_count() * 5;
+    with ThreadPoolExecutor(max_workers = workers) as executor:
         future_to_chunk = {executor.submit(transcribe_audio, chunk): chunk for chunk in chunks}
         for future in as_completed(future_to_chunk):
             chunk = future_to_chunk[future]
@@ -83,7 +84,7 @@ def parallel_transcribe_audio(chunks):
 def analyze_sentiment(text):
     # Load the tokenizer and sentiment-analysis pipeline
     tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-    
+
     # Models for sentiment analysis
     # Default model
     # classifier = pipeline('sentiment-analysis', model="bert-base-uncased")
@@ -96,7 +97,7 @@ def analyze_sentiment(text):
 
     # Tokenize the text into sentences
     sentences = sent_tokenize(text)
-    
+
     sentiment_results = []
     for sentence in sentences:
         # Check if the length of the tokens does not exceed the maximum size
@@ -108,7 +109,7 @@ def analyze_sentiment(text):
         # Analyze sentiment of the sentence
         result = classifier(sentence_text)
         # Pair each sentence with its result
-        sentiment_results.append((sentence, result[0]))  
+        sentiment_results.append((sentence, result[0]))
 
     return sentiment_results
 
@@ -120,8 +121,8 @@ def extract_entities(text, filename, keywords=["employee", "HR", "vacancies", "r
 
     # Tokenize the text into sentences
     sentences = sent_tokenize(text)
-    
-    
+
+
     # Collecting relevant entities
     relevant_entities = []
     for sentence in sentences:
@@ -149,20 +150,20 @@ def extract_entities(text, filename, keywords=["employee", "HR", "vacancies", "r
 def generate_word_cloud(text, filename):
     # Tokenize the text into words
     words = word_tokenize(text.lower())
-    
+
     # Load stop words
     stop_words = set(stopwords.words('english'))
-    
+
     # Additional common but irrelevant words could be filtered out
     additional_stopwords = {'may', 'also', 'many', 'must', 'can', 'much', 'every', 'would', 'could', 'today', 'felt', 'us'}
     stop_words.update(additional_stopwords)
 
     # Filter out stopwords
     filtered_words = [word for word in words if word not in stop_words and word.isalnum()]
-    
+
     # Frequency distribution of words
     freq_dist = nltk.FreqDist(filtered_words)
-    
+
     output_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'word-clouds')
     if not os.path.exists(output_folder):
             os.makedirs(output_folder)

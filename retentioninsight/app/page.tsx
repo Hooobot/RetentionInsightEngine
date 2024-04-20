@@ -62,17 +62,18 @@ const Home: NextPage = () => {
       body: formData
     })
     .then(response => response.json())
-      .then(data => {setTranscription(data.transcription); setSentiment(data.sentiments); setIsSubmitted(true);})
+      .then(data => {setSentiment(data.sentiments); setIsSubmitted(true);})
+    getTranscription(data.name);
   }
 
   function getTranscription(filename: string) {
     let transcript = '';
     let newFileName = filename.replace(/ /g, '_');
     newFileName = newFileName.replace(/\.[^/.]+$/, "");
+    newFileName = newFileName.replace(/[()]/g, "");
     fetch(`http://localhost:5000/api/transcriptions/${newFileName}transcription.txt`)
-      .then(response => console.log(response.text));
-
-    return transcript;
+      .then(response => response.text())
+        .then(text => setTranscription(text));
   }
 
   function getWordCloud(filename: string) {
@@ -138,7 +139,7 @@ const Home: NextPage = () => {
             </button>
           </aside>
         )}
-        {isSubmitted ? 
+        {isSubmitted ?
           <div>
             <div className={styles.summary}>
               <h2 className={styles.description}>Transcription</h2>
@@ -161,7 +162,7 @@ const Home: NextPage = () => {
                 })}
             </div>
           </div>
-        : 
+        :
         <div>
           </div>}
       </main>
