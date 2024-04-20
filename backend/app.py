@@ -32,10 +32,10 @@ def get_image(filename):
     # Ensure the file exists and is a PNG file to prevent directory traversal attacks
     if not filename.endswith('.png'):
         return jsonify({'error': 'does not exist'}), 404
-    
+
     # Complete file path
     file_path = os.path.join(IMAGE_FOLDER, filename)
-    
+
     # Check if file exists
     if not os.path.isfile(file_path):
         return jsonify({'error': 'does not exist'}), 500
@@ -47,11 +47,11 @@ def get_image(filename):
 def get_extraction(filename):
     # Complete file path
     file_path = os.path.join(EXTRACTION_FOLDER, filename)
-    
+
     # Check if file exists
     if not os.path.isfile(file_path):
         return jsonify({'error': 'does not exist'}), 404
-    
+
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
             content = file.read()
@@ -63,7 +63,7 @@ def get_extraction(filename):
 def get_transcription(filename):
     # Complete file path
     file_path = os.path.join(TRANSCRIPTION_FOLDER, filename)
-    
+
     # Check if file exists
     if not os.path.isfile(file_path):
         return jsonify({'error': 'does not exist'}), 404
@@ -100,14 +100,16 @@ def upload_file():
             converted_file = report_summarization_script.convert_and_chunk_audio(filepath)
             transcribed_text = report_summarization_script.parallel_transcribe_audio(converted_file)
             punctuated_text = report_summarization_script.add_punctuations(transcribed_text, filename)
+
             sentiment_results = report_summarization_script.analyze_sentiment(punctuated_text)
-            top_results = sorted(sentiment_results, key=lambda x: x[1]['score'], reverse=True)[:100]
-            
+            # top_results = sorted(sentiment_results, key=lambda x: x[1]['score'], reverse=True)[:100]
+
+            sorted_results = report_summarization_script.sort_sentiment(sentiment_results)
             relevant_entities = report_summarization_script.extract_entities(punctuated_text, filename)
 
             report_summarization_script.generate_word_cloud(punctuated_text, filename)
 
-            return jsonify({'sentiments': top_results, 'transcription': punctuated_text}), 200
+            return jsonify({'sorted': sorted_results}), 200
         except Exception as e:
             return jsonify({'error': str(e)}), 500
 

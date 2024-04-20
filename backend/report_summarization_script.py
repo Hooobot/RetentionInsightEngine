@@ -179,3 +179,21 @@ def generate_word_cloud(text, filename):
     # plt.imshow(wordcloud, interpolation='bilinear')
     # plt.axis('off')
     # plt.show()
+
+def sort_sentiment(sentiment_list):
+    negative = []
+    neutral = []
+    positive = []
+
+    for sentiment in sentiment_list:
+        if sentiment[1]['label'] == 'LABEL_0':
+            negative.append(sentiment)
+        elif sentiment[1]['label'] == 'LABEL_1':
+            neutral.append(sentiment)
+        elif sentiment[1]['label'] == 'LABEL_2':
+            positive.append(sentiment)
+
+    sort_negative = sorted(negative, key=lambda p: p[1]['score'], reverse=True)
+    sort_neutral = sorted(neutral, key=lambda p: p[1]['score'], reverse=True)
+    sort_positive = sorted(positive, key=lambda p: p[1]['score'], reverse=True)
+    return [sort_negative, sort_neutral, sort_positive]

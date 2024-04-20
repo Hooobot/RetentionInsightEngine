@@ -18,6 +18,7 @@ const Home: NextPage = () => {
   const [transcription, setTranscription] = useState('');
   const [processed, setProcessed] = useState(true);
   const [sentiment, setSentiment] = useState([]);
+  const [sort, setSort] = useState([]);
 
   // Handler for file drops
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -51,19 +52,18 @@ const Home: NextPage = () => {
   }
 
   //function to run python conversion and summarization scripts in the backend
-  function processData(data: File) {
+  function processData(file: File) {
     console.log('processData called')
 
     const formData = new FormData();
-    formData.append('file', data);
+    formData.append('file', file);
 
     fetch('http://localhost:5000/api/upload', {
       method: 'POST',
       body: formData
     })
     .then(response => response.json())
-      .then(data => {setSentiment(data.sentiments); setIsSubmitted(true);})
-    getTranscription(data.name);
+      .then(data => {setSort(data.sorted); setIsSubmitted(true); getTranscription(file.name);})
   }
 
   function getTranscription(filename: string) {
@@ -80,7 +80,6 @@ const Home: NextPage = () => {
     let newFileName = filename.replace(/ /g, '_');
     newFileName = newFileName.replace(/(\.[^/.]+)$/, "");
     newFileName = newFileName.replace(/[()]/g, "");
-    console.log(`http://localhost:5000/api/word-clouds/${newFileName}wordcloud.png`);
     return (`http://localhost:5000/api/word-clouds/${newFileName}wordcloud.png`);
   }
 
@@ -150,17 +149,25 @@ const Home: NextPage = () => {
               <Image src={getWordCloud(files[0].name)} width={800} height={400} alt={`${files[0].name}-word-cloud`}/>
             </div>
             <div className={styles.summary}>
-              <h2 className={styles.description}>Sentiment Analysis</h2>
-              {sentiment.map((s) => {
-                  return(
+              <h1 className={styles.description}>Sorted Sentiment Analysis</h1>
+              {sort.map((s,i) => {
+                return(
                     <div key={s[0]} className={styles.summary}>
-                      <h2 className={styles.description}>Sentence: {s[0]}</h2>
-                      <h2 className={styles.description}>Label: {s[1]['label']}</h2>
-                      <h2 className={styles.description}>Score: {s[1]['score']}</h2>
-                    </div>
-                  )
+                      <h2 className={styles.description}>LABEL_{i}</h2>
+                      {s.map((m) => {
+                        return(
+                            <div key={m[0]} className={styles.summary}>
+                              <h2 className={styles.description}>Sentence: {m[0]}</h2>
+                              <h2 className={styles.description}>Label: {m[1]['label']}</h2>
+                              <h2 className={styles.description}>Score: {m[1]['score']}</h2>
+                            </div>
+                        )
+                      })}
+                      </div>
+                    )
                 })}
             </div>
+
           </div>
         :
         <div>
