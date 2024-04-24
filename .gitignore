@@ -1,13 +1,26 @@
+# Environment Variables
 .venv
+./backend/venv
+
+
+# Audio Transcriptions
 converted_file.wav
 audio_chunks/*
-.vercel
+/backend/audio_chunks/*
+/backend/transcriptions/*
 
+# Additional backend output
+/backend/entity-extractions/*
+/backend/sentiments/*
+/backend/file-uploads/*
+/backend/word-clouds/*
+/backend/__pycache__
+
+# Vercel
+.vercel
 
 # MacOS
 .DS_Store
 
-/backend/venv
-/backend/__pycache__
-
+# Extra
 .idea
