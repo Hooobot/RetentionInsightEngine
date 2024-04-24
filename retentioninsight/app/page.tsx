@@ -18,7 +18,7 @@ const Home: NextPage = () => {
   const [transcription, setTranscription] = useState('');
   const [processed, setProcessed] = useState(true);
   const [sentiment, setSentiment] = useState([]);
-  const [sort, setSort] = useState([]);
+  const [sort, setSort] = useState<Object[]>([]);
 
   // Handler for file drops
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -29,11 +29,8 @@ const Home: NextPage = () => {
   // Handle file submission
   const handleSubmit = () => {
     // Implement your submission logic here
-    // console.log("Processing files:", files);
-    // console.log(files[0]);
     setProcessed(false);
     processData(files[0]);
-    // setIsSubmitted(true);
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -89,11 +86,6 @@ const Home: NextPage = () => {
     .then(response => response.json())
     .then(data => console.log(data));
   }
-
-  useEffect(() => {
-    //run the GET function to confirm connection from Client-side
-    fetchData();
-}, []);
 
   return (
     <div className={styles.container}>
@@ -151,14 +143,14 @@ const Home: NextPage = () => {
             <div className={styles.summary}>
               <h1 className={styles.description}>Sorted Sentiment Analysis</h1>
               {sort.map((s,i) => {
+                const labels = ['Negative', 'Neutral', 'Positive']
                 return(
                     <div key={s[0]} className={styles.summary}>
-                      <h2 className={styles.description}>LABEL_{i}</h2>
+                      <h2 className={styles.description}>{labels[i]}</h2>
                       {s.map((m) => {
                         return(
                             <div key={m[0]} className={styles.summary}>
                               <h2 className={styles.description}>Sentence: {m[0]}</h2>
-                              <h2 className={styles.description}>Label: {m[1]['label']}</h2>
                               <h2 className={styles.description}>Score: {m[1]['score']}</h2>
                             </div>
                         )
