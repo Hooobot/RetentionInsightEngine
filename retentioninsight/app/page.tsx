@@ -40,6 +40,7 @@ const Home: NextPage = () => {
       "audio/mp3": [".mp3"],
       "audio/m4a": [".m4a"],
       "video/mp4": [".mp4"],
+      "text/plain": [".txt"],
     },
   });
 

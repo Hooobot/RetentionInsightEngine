@@ -16,7 +16,7 @@ IMAGE_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'word-cl
 EXTRACTION_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'entity-extractions')
 TRANSCRIPTION_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'transcriptions')
 SENTIMENTS_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sentiments')
-ALLOWED_EXTENSIONS = {'mp4', 'mp3', 'm4a'}
+ALLOWED_EXTENSIONS = {'mp4', 'mp3', 'm4a', 'txt'}
 
 TRANSCRIPTION_NAMES = []
 
@@ -112,8 +112,16 @@ def upload_file():
         if file and allowed_file(file.filename):
             if not os.path.exists(UPLOAD_FOLDER):
                 os.makedirs(UPLOAD_FOLDER)
+            if not os.path.exists(TRANSCRIPTION_FOLDER):
+                os.makedirs(TRANSCRIPTION_FOLDER)
             filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            new_file_name, file_extension = os.path.splitext(filename)
+
+            if file_extension != '.txt':
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            elif file_extension == '.txt':
+                filepath = os.path.join(TRANSCRIPTION_FOLDER, new_file_name + 'transcription.txt')
+
             try:
                 file.save(filepath)
             except Exception as e:
@@ -121,24 +129,39 @@ def upload_file():
                 return jsonify(error='Failed to save file'), 500
 
             try:
-                converted_file = report_summarization_script.convert_and_chunk_audio(filepath)
-                transcribed_text = report_summarization_script.parallel_transcribe_audio(converted_file)
-                punctuated_text = report_summarization_script.add_punctuations(transcribed_text, filename)
+                if file_extension != '.txt':
+                    
+                    converted_file = report_summarization_script.convert_and_chunk_audio(filepath)
+                    transcribed_text = report_summarization_script.parallel_transcribe_audio(converted_file)
+                    punctuated_text = report_summarization_script.add_punctuations(transcribed_text, filename)
 
-                sentiment_results = report_summarization_script.analyze_sentiment(punctuated_text)
-                # top_results = sorted(sentiment_results, key=lambda x: x[1]['score'], reverse=True)[:100]
+                    sentiment_results = report_summarization_script.analyze_sentiment(punctuated_text)
+                    # top_results = sorted(sentiment_results, key=lambda x: x[1]['score'], reverse=True)[:100]
 
-                sorted_results = report_summarization_script.sort_sentiment(sentiment_results)
-                relevant_entities = report_summarization_script.extract_entities(punctuated_text, filename)
+                    sorted_results = report_summarization_script.sort_sentiment(sentiment_results)
+                    relevant_entities = report_summarization_script.extract_entities(punctuated_text, filename)
 
-                report_summarization_script.generate_word_cloud(punctuated_text, filename)
+                    report_summarization_script.generate_word_cloud(punctuated_text, filename)
 
-                if filename not in TRANSCRIPTION_NAMES:
-                    TRANSCRIPTION_NAMES.append(os.path.splitext(filename)[0])
+                    if filename not in TRANSCRIPTION_NAMES:
+                        TRANSCRIPTION_NAMES.append(os.path.splitext(filename)[0])
 
-                report_summarization_script.save_sentiments_to_json(sorted_results, os.path.splitext(filename)[0])
+                    report_summarization_script.save_sentiments_to_json(sorted_results, os.path.splitext(filename)[0])
 
-                return jsonify({'sorted': sorted_results}), 200
+                    return jsonify({'sorted': sorted_results}), 200
+                elif file_extension == '.txt':
+                    transcript = report_summarization_script.read_text_file(filepath)
+                    
+                    sentiment_results = report_summarization_script.analyze_sentiment(transcript)
+                    sorted_results = report_summarization_script.sort_sentiment(sentiment_results)
+                    report_summarization_script.generate_word_cloud(transcript, filename)
+
+                    if filename not in TRANSCRIPTION_NAMES:
+                        TRANSCRIPTION_NAMES.append(os.path.splitext(filename)[0])
+
+                    report_summarization_script.save_sentiments_to_json(sorted_results, os.path.splitext(filename)[0])
+
+                    return jsonify({'sorted': sorted_results}), 200
             except Exception as e:
                 return jsonify({'error': str(e)}), 500
 

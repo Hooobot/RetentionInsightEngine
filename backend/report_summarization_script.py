@@ -17,6 +17,19 @@ import json
 nltk.download('punkt')
 nltk.download('stopwords')
 
+def read_text_file(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            # Read the entire contents of the file
+            contents = file.read()
+            return contents
+    except FileNotFoundError:
+        print(f"Error: File '{file_path}' not found.")
+        return None
+    except Exception as e:
+        print(f"Error reading file '{file_path}': {e}")
+        return None
+
 def add_punctuations(text_file, filename):
     # Load the punctuation model, for example, a fine-tuned BERT model
     # punctuator = pipeline("text-generation", model="bert-base-uncased-punctuation")
