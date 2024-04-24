@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from wordcloud import WordCloud
 import argparse
 from deepmultilingualpunctuation import PunctuationModel
+import json
 # from google.cloud import speech
 
 # Ensure NLTK resources are downloaded
@@ -96,7 +97,7 @@ def analyze_sentiment(text):
     # classifier = pipeline('sentiment-analysis', model="bert-base-uncased")
     # Model based from product reviews
     # classifier = pipeline('sentiment-analysis', model="nlptown/bert-base-multilingual-uncased-sentiment")
-    
+
     # Model based on Twitter data
     classifier = pipeline('sentiment-analysis', model="CardiffNLP/twitter-roberta-base-sentiment")
 
@@ -144,7 +145,7 @@ def extract_entities(text, filename, keywords=["employee", "HR", "vacancies", "r
         if found_entities:
             relevant_entities.append((sentence, found_entities))
 
-            output_folder = output_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'entity-extractions')
+            output_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'entity-extractions')
             if not os.path.exists(output_folder):
                 os.makedirs(output_folder)
 
@@ -204,3 +205,27 @@ def sort_sentiment(sentiment_list):
     sort_neutral = sorted(neutral, key=lambda p: p[1]['score'], reverse=True)
     sort_positive = sorted(positive, key=lambda p: p[1]['score'], reverse=True)
     return [sort_negative, sort_neutral, sort_positive]
+
+def save_sentiments_to_json(sentiments, filename):
+    # Extract sentiments for each category
+    negative_sentiments = sentiments[0]
+    neutral_sentiments = sentiments[1]
+    positive_sentiments = sentiments[2]
+
+    # Structure sentiments into a dictionary with keys for each category
+    data = {
+        "negative": negative_sentiments,
+        "neutral": neutral_sentiments,
+        "positive": positive_sentiments
+    }
+
+    output_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sentiments')
+    if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
+
+    json_name = filename+ "sentiments.json"
+    output_path = os.path.join(output_folder, json_name)
+
+    # Save the structured sentiments to a JSON file
+    with open(output_path, 'w') as json_file:
+        json.dump(data, json_file, indent=4)

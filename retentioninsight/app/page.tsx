@@ -18,7 +18,7 @@ const Home: NextPage = () => {
   const [transcription, setTranscription] = useState('');
   const [processed, setProcessed] = useState(true);
   const [sentiment, setSentiment] = useState([]);
-  const [sort, setSort] = useState<Object[]>([]);
+  const [sort, setSort] = useState<Array<Array<any>>>([]);
 
   // Handler for file drops
   const onDrop = useCallback((acceptedFiles: File[]) => {

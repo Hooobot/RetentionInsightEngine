@@ -5,6 +5,7 @@ import yt_video_to_mp3  # Assumes this script handles YouTube downloading and MP
 import report_summarization_script  # Assumes this script handles audio processing and sentiment analysis
 import os
 import array
+import json
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all domains on all routes (adjust in production)
@@ -14,6 +15,7 @@ UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'file-u
 IMAGE_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'word-clouds')
 EXTRACTION_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'entity-extractions')
 TRANSCRIPTION_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'transcriptions')
+SENTIMENTS_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sentiments')
 ALLOWED_EXTENSIONS = {'mp4', 'mp3', 'm4a'}
 
 TRANSCRIPTION_NAMES = []
@@ -78,10 +80,26 @@ def get_transcription(filename):
     except Exception as e:
         return str(e), 500
 
+@app.route('/api/sentiments/<filename>')
+def get_saved_sentiments(filename):
+    # Complete file path
+    file_path = os.path.join(SENTIMENTS_FOLDER, filename)
+
+    # Check if file exists
+    if not os.path.isfile(file_path):
+        return jsonify({'error': 'does not exist'}), 404
+
+    try:
+        with open(file_path, 'r') as json_file:
+            sentiments = json.load(json_file)
+        return jsonify(sentiments), 200
+    except FileNotFoundError:
+        return jsonify(error='Sentiments for the specified file not found'), 404
+
 @app.route('/api/upload', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'GET':
-        return jsonify({'files_names': TRANSCRIPTION_NAMES}), 200
+        return jsonify({'file_names': TRANSCRIPTION_NAMES}), 200
     elif request.method == 'POST':
         # Check if the post request has the file part
         if 'file' not in request.files:
@@ -115,7 +133,10 @@ def upload_file():
 
                 report_summarization_script.generate_word_cloud(punctuated_text, filename)
 
-                TRANSCRIPTION_NAMES.append(filename)
+                if filename not in TRANSCRIPTION_NAMES:
+                    TRANSCRIPTION_NAMES.append(os.path.splitext(filename)[0])
+
+                report_summarization_script.save_sentiments_to_json(sorted_results, os.path.splitext(filename)[0])
 
                 return jsonify({'sorted': sorted_results}), 200
             except Exception as e:
