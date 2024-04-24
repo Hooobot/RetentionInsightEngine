@@ -44,7 +44,6 @@ def add_punctuations(text_file, filename):
 
     with open(output_folder + '/' + os.path.splitext(filename)[0] + 'transcription.txt', 'w') as file:
         file.write(str(result))
-
     return str(result)
 
 def convert_audio(input_file):
@@ -110,15 +109,11 @@ def analyze_sentiment(text):
     # classifier = pipeline('sentiment-analysis', model="bert-base-uncased")
     # Model based from product reviews
     # classifier = pipeline('sentiment-analysis', model="nlptown/bert-base-multilingual-uncased-sentiment")
-
     # Model based on Twitter data
     classifier = pipeline('sentiment-analysis', model="CardiffNLP/twitter-roberta-base-sentiment")
 
-
-
     # Tokenize the text into sentences
     sentences = sent_tokenize(text)
-
     sentiment_results = []
     for sentence in sentences:
         # Check if the length of the tokens does not exceed the maximum size
@@ -130,7 +125,7 @@ def analyze_sentiment(text):
         # Analyze sentiment of the sentence
         result = classifier(sentence_text)
         # Pair each sentence with its result
-        sentiment_results.append((sentence, result[0]))
+        sentiment_results.append((sentence, result[0]))  
 
     return sentiment_results
 
@@ -142,8 +137,6 @@ def extract_entities(text, filename, keywords=["employee", "HR", "vacancies", "r
 
     # Tokenize the text into sentences
     sentences = sent_tokenize(text)
-
-
     # Collecting relevant entities
     relevant_entities = []
     for sentence in sentences:
@@ -171,20 +164,20 @@ def extract_entities(text, filename, keywords=["employee", "HR", "vacancies", "r
 def generate_word_cloud(text, filename):
     # Tokenize the text into words
     words = word_tokenize(text.lower())
-
+    
     # Load stop words
     stop_words = set(stopwords.words('english'))
-
+    
     # Additional common but irrelevant words could be filtered out
     additional_stopwords = {'may', 'also', 'many', 'must', 'can', 'much', 'every', 'would', 'could', 'today', 'felt', 'us'}
     stop_words.update(additional_stopwords)
 
     # Filter out stopwords
     filtered_words = [word for word in words if word not in stop_words and word.isalnum()]
-
+    
     # Frequency distribution of words
     freq_dist = nltk.FreqDist(filtered_words)
-
+    
     output_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'word-clouds')
     if not os.path.exists(output_folder):
             os.makedirs(output_folder)

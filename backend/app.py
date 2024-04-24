@@ -31,7 +31,6 @@ def allowed_file(filename):
 def check():
     if request.method == 'GET':
         return jsonify({'message': report_summarization_script.check()}),200
-
 @app.route('/api/word-clouds/<filename>', methods=['GET'])
 def get_image(filename):
     # Ensure the file exists and is a PNG file to prevent directory traversal attacks
@@ -40,7 +39,6 @@ def get_image(filename):
 
     # Complete file path
     file_path = os.path.join(IMAGE_FOLDER, filename)
-
     # Check if file exists
     if not os.path.isfile(file_path):
         return jsonify({'error': 'does not exist'}), 500
@@ -52,11 +50,10 @@ def get_image(filename):
 def get_extraction(filename):
     # Complete file path
     file_path = os.path.join(EXTRACTION_FOLDER, filename)
-
+    
     # Check if file exists
     if not os.path.isfile(file_path):
         return jsonify({'error': 'does not exist'}), 404
-
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
             content = file.read()
@@ -68,7 +65,6 @@ def get_extraction(filename):
 def get_transcription(filename):
     # Complete file path
     file_path = os.path.join(TRANSCRIPTION_FOLDER, filename)
-
     # Check if file exists
     if not os.path.isfile(file_path):
         return jsonify({'error': 'does not exist'}), 404

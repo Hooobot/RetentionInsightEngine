@@ -141,7 +141,7 @@ const Home: NextPage = () => {
             </button>
           </aside>
         )}
-        {isSubmitted ?
+        {isSubmitted ? 
           <div>
             <div className={styles.summary}>
               <h2 className={styles.description}>Transcription</h2>
