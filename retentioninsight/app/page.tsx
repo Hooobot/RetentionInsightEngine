@@ -31,20 +31,30 @@ const Home: NextPage = () => {
     // Implement your submission logic here
     setProcessed(false);
     processData(files[0]);
+    // fetchData(files[0]);
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
       "audio/mp3": [".mp3"],
+      "audio/m4a": [".m4a"],
       "video/mp4": [".mp4"],
     },
   });
 
   //used to check GET endpoints to Flask backend server
-  function fetchData() {
-    fetch('http://localhost:5000/api/download-and-convert')
-      .then(response => response.json())
+  function fetchData(file: File) {
+    console.log('processData called')
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    fetch('http://localhost:5000/api/check', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
       .then(data => console.log(data));
   }
 
@@ -60,7 +70,7 @@ const Home: NextPage = () => {
       body: formData
     })
     .then(response => response.json())
-      .then(data => {setSort(data.sorted); setIsSubmitted(true); getTranscription(file.name);})
+      .then(data => {console.log(data); setSort(data.sorted); setIsSubmitted(true); getTranscription(file.name);})
   }
 
   function getTranscription(filename: string) {
@@ -142,7 +152,7 @@ const Home: NextPage = () => {
             </div>
             <div className={styles.summary}>
               <h1 className={styles.description}>Sorted Sentiment Analysis</h1>
-              {sort.map((s,i) => {
+              {sort && sort.map((s,i) => {
                 const labels = ['Negative', 'Neutral', 'Positive']
                 return(
                     <div key={s[0]} className={styles.summary}>

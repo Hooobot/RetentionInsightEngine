@@ -14,7 +14,7 @@ UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'file-u
 IMAGE_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'word-clouds')
 EXTRACTION_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'entity-extractions')
 TRANSCRIPTION_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'transcriptions')
-ALLOWED_EXTENSIONS = {'mp4', 'mp3'}
+ALLOWED_EXTENSIONS = {'mp4', 'mp3', 'm4a'}
 
 TRANSCRIPTION_NAMES = []
 
@@ -27,7 +27,8 @@ def allowed_file(filename):
 
 @app.route('/api/check', methods=['GET'])
 def check():
-    return jsonify({'message': report_summarization_script.check()}),200
+    if request.method == 'GET':
+        return jsonify({'message': report_summarization_script.check()}),200
 
 @app.route('/api/word-clouds/<filename>', methods=['GET'])
 def get_image(filename):

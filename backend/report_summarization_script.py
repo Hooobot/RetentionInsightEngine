@@ -58,7 +58,8 @@ def transcribe_audio(file_path):
 def convert_and_chunk_audio(input_file, output_folder="audio_chunks", chunk_length_ms=30000):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
-    sound = AudioSegment.from_mp3(input_file)
+    file_extension = os.path.splitext(input_file)[1].strip('.')
+    sound = AudioSegment.from_file(input_file, format=file_extension)
     chunks = []
     for i in range(0, len(sound), chunk_length_ms):
         chunk = sound[i:i+chunk_length_ms]
@@ -68,31 +69,37 @@ def convert_and_chunk_audio(input_file, output_folder="audio_chunks", chunk_leng
     return chunks
 
 def parallel_transcribe_audio(chunks):
-    transcriptions = []
-    workers = os.cpu_count() * 5;
-    with ThreadPoolExecutor(max_workers = workers) as executor:
-        future_to_chunk = {executor.submit(transcribe_audio, chunk): chunk for chunk in chunks}
-        for future in as_completed(future_to_chunk):
-            chunk = future_to_chunk[future]
+    # Initialize the list with placeholders for each transcription
+    transcriptions = [None] * len(chunks)
+    workers = os.cpu_count() * 5
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        # Submit all chunk transcriptions to the executor
+        future_to_index = {executor.submit(transcribe_audio, chunk): i for i, chunk in enumerate(chunks)}
+        # Process completed transcription tasks
+        for future in as_completed(future_to_index):
+            index = future_to_index[future]
             try:
                 transcription = future.result()
-                transcriptions.append(transcription)
+                transcriptions[index] = transcription  # Place transcription at the correct index
             except Exception as exc:
-                print(f'Chunk {chunk} generated an exception: {exc}')
-    return " ".join(transcriptions)
+                print(f'Chunk at index {index} generated an exception: {exc}')
+    
+    # Filter out None values in case of failed transcriptions and join the rest
+    return " ".join(filter(None, transcriptions))
 
 def analyze_sentiment(text):
     # Load the tokenizer and sentiment-analysis pipeline
-    tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+    tokenizer = AutoTokenizer.from_pretrained("CardiffNLP/twitter-roberta-base-sentiment")
 
     # Models for sentiment analysis
     # Default model
     # classifier = pipeline('sentiment-analysis', model="bert-base-uncased")
     # Model based from product reviews
     # classifier = pipeline('sentiment-analysis', model="nlptown/bert-base-multilingual-uncased-sentiment")
+    
     # Model based on Twitter data
     classifier = pipeline('sentiment-analysis', model="CardiffNLP/twitter-roberta-base-sentiment")
-    # classifier = pipeline('sentiment-analysis', model="bert-base-uncased-finetuned-sst-2-english")
+
 
 
     # Tokenize the text into sentences
