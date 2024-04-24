@@ -16,6 +16,8 @@ EXTRACTION_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'en
 TRANSCRIPTION_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'transcriptions')
 ALLOWED_EXTENSIONS = {'mp4', 'mp3'}
 
+TRANSCRIPTION_NAMES = []
+
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000  # 16 MB limit
 
@@ -75,52 +77,58 @@ def get_transcription(filename):
     except Exception as e:
         return str(e), 500
 
-@app.route('/api/upload', methods=['POST'])
+@app.route('/api/upload', methods=['GET', 'POST'])
 def upload_file():
-    # Check if the post request has the file part
-    if 'file' not in request.files:
-        return jsonify(error='No file part'), 400
-    file = request.files['file']
+    if request.method == 'GET':
+        return jsonify({'files_names': TRANSCRIPTION_NAMES}), 200
+    elif request.method == 'POST':
+        # Check if the post request has the file part
+        if 'file' not in request.files:
+            return jsonify(error='No file part'), 400
+        file = request.files['file']
 
-    # If user does not select file, browser also submits an empty part without filename
-    if file.filename == '':
-        return jsonify(error='No selected file'), 400
-    if file and allowed_file(file.filename):
-        if not os.path.exists(UPLOAD_FOLDER):
-            os.makedirs(UPLOAD_FOLDER)
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        try:
-            file.save(filepath)
-        except Exception as e:
-            app.logger.error(f'Failed to save file: {str(e)}')
-            return jsonify(error='Failed to save file'), 500
+        # If user does not select file, browser also submits an empty part without filename
+        if file.filename == '':
+            return jsonify(error='No selected file'), 400
+        if file and allowed_file(file.filename):
+            if not os.path.exists(UPLOAD_FOLDER):
+                os.makedirs(UPLOAD_FOLDER)
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            try:
+                file.save(filepath)
+            except Exception as e:
+                app.logger.error(f'Failed to save file: {str(e)}')
+                return jsonify(error='Failed to save file'), 500
 
-        try:
-            converted_file = report_summarization_script.convert_and_chunk_audio(filepath)
-            transcribed_text = report_summarization_script.parallel_transcribe_audio(converted_file)
-            punctuated_text = report_summarization_script.add_punctuations(transcribed_text, filename)
+            try:
+                converted_file = report_summarization_script.convert_and_chunk_audio(filepath)
+                transcribed_text = report_summarization_script.parallel_transcribe_audio(converted_file)
+                punctuated_text = report_summarization_script.add_punctuations(transcribed_text, filename)
 
-            sentiment_results = report_summarization_script.analyze_sentiment(punctuated_text)
-            # top_results = sorted(sentiment_results, key=lambda x: x[1]['score'], reverse=True)[:100]
+                sentiment_results = report_summarization_script.analyze_sentiment(punctuated_text)
+                # top_results = sorted(sentiment_results, key=lambda x: x[1]['score'], reverse=True)[:100]
 
-            sorted_results = report_summarization_script.sort_sentiment(sentiment_results)
-            relevant_entities = report_summarization_script.extract_entities(punctuated_text, filename)
+                sorted_results = report_summarization_script.sort_sentiment(sentiment_results)
+                relevant_entities = report_summarization_script.extract_entities(punctuated_text, filename)
 
-            report_summarization_script.generate_word_cloud(punctuated_text, filename)
+                report_summarization_script.generate_word_cloud(punctuated_text, filename)
 
-            return jsonify({'sorted': sorted_results}), 200
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
+                TRANSCRIPTION_NAMES.append(filename)
 
-        return jsonify(message=f'File {filename} uploaded successfully'), 200
-    else:
-        return jsonify(error='File type not allowed'), 400
+                return jsonify({'sorted': sorted_results}), 200
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+
+            return jsonify(message=f'File {filename} uploaded successfully'), 200
+        else:
+            return jsonify(error='File type not allowed'), 400
 
 @app.route('/', methods=['GET'])
 def app_check():
     if request.method == 'GET':
         return jsonify({'message': 'Retention Insight Engine Backend Server'})
+
 @app.route('/api/download-and-convert', methods=['POST', 'GET'])
 def download_and_convert():
     if request.method == 'GET':
