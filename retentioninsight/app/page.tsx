@@ -18,6 +18,7 @@ const Home: NextPage = () => {
   const [transcription, setTranscription] = useState('');
   const [processed, setProcessed] = useState(true);
   const [sentiment, setSentiment] = useState([]);
+  const [sort, setSort] = useState<Array<Array<any>>>([]);
 
   // Handler for file drops
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -28,58 +29,65 @@ const Home: NextPage = () => {
   // Handle file submission
   const handleSubmit = () => {
     // Implement your submission logic here
-    // console.log("Processing files:", files);
-    // console.log(files[0]);
     setProcessed(false);
     processData(files[0]);
-    // setIsSubmitted(true);
+    // fetchData(files[0]);
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
       "audio/mp3": [".mp3"],
+      "audio/m4a": [".m4a"],
       "video/mp4": [".mp4"],
+      "text/plain": [".txt"],
     },
   });
 
   //used to check GET endpoints to Flask backend server
-  function fetchData() {
-    fetch('http://localhost:5000/api/download-and-convert')
-      .then(response => response.json())
+  function fetchData(file: File) {
+    console.log('processData called')
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    fetch('http://localhost:5000/api/check', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
       .then(data => console.log(data));
   }
 
   //function to run python conversion and summarization scripts in the backend
-  function processData(data: File) {
+  function processData(file: File) {
     console.log('processData called')
 
     const formData = new FormData();
-    formData.append('file', data);
+    formData.append('file', file);
 
     fetch('http://localhost:5000/api/upload', {
       method: 'POST',
       body: formData
     })
     .then(response => response.json())
-      .then(data => {setTranscription(data.transcription); setSentiment(data.sentiments); setIsSubmitted(true);})
+      .then(data => {console.log(data); setSort(data.sorted); setIsSubmitted(true); getTranscription(file.name);})
   }
 
   function getTranscription(filename: string) {
     let transcript = '';
     let newFileName = filename.replace(/ /g, '_');
     newFileName = newFileName.replace(/\.[^/.]+$/, "");
+    newFileName = newFileName.replace(/[()]/g, "");
     fetch(`http://localhost:5000/api/transcriptions/${newFileName}transcription.txt`)
-      .then(response => console.log(response.text));
-
-    return transcript;
+      .then(response => response.text())
+        .then(text => setTranscription(text));
   }
 
   function getWordCloud(filename: string) {
     let newFileName = filename.replace(/ /g, '_');
     newFileName = newFileName.replace(/(\.[^/.]+)$/, "");
     newFileName = newFileName.replace(/[()]/g, "");
-    console.log(`http://localhost:5000/api/word-clouds/${newFileName}wordcloud.png`);
     return (`http://localhost:5000/api/word-clouds/${newFileName}wordcloud.png`);
   }
 
@@ -89,11 +97,6 @@ const Home: NextPage = () => {
     .then(response => response.json())
     .then(data => console.log(data));
   }
-
-  useEffect(() => {
-    //run the GET function to confirm connection from Client-side
-    fetchData();
-}, []);
 
   return (
     <div className={styles.container}>
@@ -149,19 +152,27 @@ const Home: NextPage = () => {
               <Image src={getWordCloud(files[0].name)} width={800} height={400} alt={`${files[0].name}-word-cloud`}/>
             </div>
             <div className={styles.summary}>
-              <h2 className={styles.description}>Sentiment Analysis</h2>
-              {sentiment.map((s) => {
-                  return(
+              <h1 className={styles.description}>Sorted Sentiment Analysis</h1>
+              {sort && sort.map((s,i) => {
+                const labels = ['Negative', 'Neutral', 'Positive']
+                return(
                     <div key={s[0]} className={styles.summary}>
-                      <h2 className={styles.description}>Sentence: {s[0]}</h2>
-                      <h2 className={styles.description}>Label: {s[1]['label']}</h2>
-                      <h2 className={styles.description}>Score: {s[1]['score']}</h2>
-                    </div>
-                  )
+                      <h2 className={styles.description}>{labels[i]}</h2>
+                      {s.map((m) => {
+                        return(
+                            <div key={m[0]} className={styles.summary}>
+                              <h2 className={styles.description}>Sentence: {m[0]}</h2>
+                              <h2 className={styles.description}>Score: {m[1]['score']}</h2>
+                            </div>
+                        )
+                      })}
+                      </div>
+                    )
                 })}
             </div>
+
           </div>
-        : 
+        :
         <div>
           </div>}
       </main>

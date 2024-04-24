@@ -10,13 +10,27 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from wordcloud import WordCloud
 import argparse
 from deepmultilingualpunctuation import PunctuationModel
+import json
 # from google.cloud import speech
 
 # Ensure NLTK resources are downloaded
 nltk.download('punkt')
 nltk.download('stopwords')
 
-def add_punctuations(text_file, filename):  
+def read_text_file(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            # Read the entire contents of the file
+            contents = file.read()
+            return contents
+    except FileNotFoundError:
+        print(f"Error: File '{file_path}' not found.")
+        return None
+    except Exception as e:
+        print(f"Error reading file '{file_path}': {e}")
+        return None
+
+def add_punctuations(text_file, filename):
     # Load the punctuation model, for example, a fine-tuned BERT model
     # punctuator = pipeline("text-generation", model="bert-base-uncased-punctuation")
     model = PunctuationModel()
@@ -30,7 +44,6 @@ def add_punctuations(text_file, filename):
 
     with open(output_folder + '/' + os.path.splitext(filename)[0] + 'transcription.txt', 'w') as file:
         file.write(str(result))
-    
     return str(result)
 
 def convert_audio(input_file):
@@ -58,7 +71,8 @@ def transcribe_audio(file_path):
 def convert_and_chunk_audio(input_file, output_folder="audio_chunks", chunk_length_ms=30000):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
-    sound = AudioSegment.from_mp3(input_file)
+    file_extension = os.path.splitext(input_file)[1].strip('.')
+    sound = AudioSegment.from_file(input_file, format=file_extension)
     chunks = []
     for i in range(0, len(sound), chunk_length_ms):
         chunk = sound[i:i+chunk_length_ms]
@@ -68,22 +82,28 @@ def convert_and_chunk_audio(input_file, output_folder="audio_chunks", chunk_leng
     return chunks
 
 def parallel_transcribe_audio(chunks):
-    transcriptions = []
-    with ThreadPoolExecutor(max_workers=5) as executor:
-        future_to_chunk = {executor.submit(transcribe_audio, chunk): chunk for chunk in chunks}
-        for future in as_completed(future_to_chunk):
-            chunk = future_to_chunk[future]
+    # Initialize the list with placeholders for each transcription
+    transcriptions = [None] * len(chunks)
+    workers = os.cpu_count() * 5
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        # Submit all chunk transcriptions to the executor
+        future_to_index = {executor.submit(transcribe_audio, chunk): i for i, chunk in enumerate(chunks)}
+        # Process completed transcription tasks
+        for future in as_completed(future_to_index):
+            index = future_to_index[future]
             try:
                 transcription = future.result()
-                transcriptions.append(transcription)
+                transcriptions[index] = transcription  # Place transcription at the correct index
             except Exception as exc:
-                print(f'Chunk {chunk} generated an exception: {exc}')
-    return " ".join(transcriptions)
+                print(f'Chunk at index {index} generated an exception: {exc}')
+    
+    # Filter out None values in case of failed transcriptions and join the rest
+    return " ".join(filter(None, transcriptions))
 
 def analyze_sentiment(text):
     # Load the tokenizer and sentiment-analysis pipeline
-    tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-    
+    tokenizer = AutoTokenizer.from_pretrained("CardiffNLP/twitter-roberta-base-sentiment")
+
     # Models for sentiment analysis
     # Default model
     # classifier = pipeline('sentiment-analysis', model="bert-base-uncased")
@@ -91,12 +111,9 @@ def analyze_sentiment(text):
     # classifier = pipeline('sentiment-analysis', model="nlptown/bert-base-multilingual-uncased-sentiment")
     # Model based on Twitter data
     classifier = pipeline('sentiment-analysis', model="CardiffNLP/twitter-roberta-base-sentiment")
-    # classifier = pipeline('sentiment-analysis', model="bert-base-uncased-finetuned-sst-2-english")
-
 
     # Tokenize the text into sentences
     sentences = sent_tokenize(text)
-    
     sentiment_results = []
     for sentence in sentences:
         # Check if the length of the tokens does not exceed the maximum size
@@ -120,8 +137,6 @@ def extract_entities(text, filename, keywords=["employee", "HR", "vacancies", "r
 
     # Tokenize the text into sentences
     sentences = sent_tokenize(text)
-    
-    
     # Collecting relevant entities
     relevant_entities = []
     for sentence in sentences:
@@ -136,7 +151,7 @@ def extract_entities(text, filename, keywords=["employee", "HR", "vacancies", "r
         if found_entities:
             relevant_entities.append((sentence, found_entities))
 
-            output_folder = output_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'entity-extractions')
+            output_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'entity-extractions')
             if not os.path.exists(output_folder):
                 os.makedirs(output_folder)
 
@@ -178,3 +193,45 @@ def generate_word_cloud(text, filename):
     # plt.imshow(wordcloud, interpolation='bilinear')
     # plt.axis('off')
     # plt.show()
+
+def sort_sentiment(sentiment_list):
+    negative = []
+    neutral = []
+    positive = []
+
+    for sentiment in sentiment_list:
+        if sentiment[1]['label'] == 'LABEL_0':
+            negative.append(sentiment)
+        elif sentiment[1]['label'] == 'LABEL_1':
+            neutral.append(sentiment)
+        elif sentiment[1]['label'] == 'LABEL_2':
+            positive.append(sentiment)
+
+    sort_negative = sorted(negative, key=lambda p: p[1]['score'], reverse=True)
+    sort_neutral = sorted(neutral, key=lambda p: p[1]['score'], reverse=True)
+    sort_positive = sorted(positive, key=lambda p: p[1]['score'], reverse=True)
+    return [sort_negative, sort_neutral, sort_positive]
+
+def save_sentiments_to_json(sentiments, filename):
+    # Extract sentiments for each category
+    negative_sentiments = sentiments[0]
+    neutral_sentiments = sentiments[1]
+    positive_sentiments = sentiments[2]
+
+    # Structure sentiments into a dictionary with keys for each category
+    data = {
+        "negative": negative_sentiments,
+        "neutral": neutral_sentiments,
+        "positive": positive_sentiments
+    }
+
+    output_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sentiments')
+    if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
+
+    json_name = filename+ "sentiments.json"
+    output_path = os.path.join(output_folder, json_name)
+
+    # Save the structured sentiments to a JSON file
+    with open(output_path, 'w') as json_file:
+        json.dump(data, json_file, indent=4)
