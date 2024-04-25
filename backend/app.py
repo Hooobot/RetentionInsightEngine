@@ -10,6 +10,15 @@ import json
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all domains on all routes (adjust in production)
 
+CORS(app, resources={
+  r"/api/word-clouds/*": {"origins": "http://localhost:3000"}
+})
+
+# OR to allow all origins (use only for development)
+CORS(app, resources={
+  r"/api/word-clouds/*": {"origins": "*"}
+})
+
 # Configuration
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'file-uploads')
 IMAGE_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'word-clouds')
@@ -120,9 +129,11 @@ def upload_file():
                     transcribed_text = report_summarization_script.parallel_transcribe_audio(converted_file)
                     punctuated_text = report_summarization_script.add_punctuations(transcribed_text, filename)
                     sentiment_results = report_summarization_script.analyze_sentiment(punctuated_text)
+                    report_summarization_script.generate_word_cloud(punctuated_text, filename)
                 else:
                     transcript = report_summarization_script.read_text_file(filepath)
                     sentiment_results = report_summarization_script.analyze_sentiment(transcript)
+                    report_summarization_script.generate_word_cloud(transcript, filename)
                 
                 json_output = report_summarization_script.generate_sentiment_json(sentiment_results)
                 report_summarization_script.save_sentiments_to_json(json_output, os.path.splitext(filename)[0])
