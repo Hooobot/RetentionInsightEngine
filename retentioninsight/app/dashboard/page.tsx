@@ -37,7 +37,7 @@ const Dashboard: NextPage = () => {
     const sanitizedFileName = sanitizeFileName(fileName);
     Promise.all([
       fetch(
-        `http://localhost:5000/api/transcriptions/${sanitizedFileName}transcription.txt`
+        `http://localhost:5000/api/transcriptions/${sanitizedFileName}.txt`
       ).then((res) => res.text()),
       fetch(
         `http://localhost:5000/api/sentiments/${sanitizedFileName}_sentiments.json`
