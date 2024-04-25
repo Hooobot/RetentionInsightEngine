@@ -77,9 +77,11 @@ const Home: NextPage = () => {
 
         // Check the number of files processed
         if (files.length === 1) {
-          // Handle a single file (set the state to display the results)
-          const newSentimentData = data.sentiments || []; // Fallback to an empty array if undefined
-          setSentimentData(newSentimentData);
+          if (!Array.isArray(data)) {
+            data = [data]; // Now 'data' is an array with a single object
+          }
+          // Set the state with the processed array
+          setSentimentData(data);
           setIsSubmitted(true);
           setProcessed(true);
           getTranscription(files[0].name);
