@@ -42,7 +42,7 @@ def add_punctuations(text_file, filename):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
-    with open(output_folder + '/' + os.path.splitext(filename)[0] + 'transcription.txt', 'w') as file:
+    with open(output_folder + '/' + os.path.splitext(filename)[0] + '.txt', 'w') as file:
         file.write(str(result))
     return str(result)
 
