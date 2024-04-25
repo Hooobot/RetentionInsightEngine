@@ -93,7 +93,8 @@ const Dashboard: NextPage = () => {
             </div>
             <div>
               <h2 className={styles.description}>Word Cloud</h2>
-              <Image
+              {/* Using <img> as a workaround to Next.js port fetching */}
+              <img
                 src={data[fileName].wordCloudUrl}
                 alt="Word Cloud"
                 width="800"

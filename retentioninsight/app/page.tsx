@@ -171,15 +171,7 @@ const Home: NextPage = () => {
               <h2 className={styles.description}>Transcription</h2>
               <p>{transcription}</p>
             </div>
-            <div className={styles.summary}>
-              <h2 className={styles.description}>Word Cloud</h2>
-              <Image
-                src={getWordCloud(files[0].name)}
-                width={800}
-                height={400}
-                alt={`${files[0].name}-word-cloud`}
-              />
-            </div>
+
             <div className={styles.summary}>
               <h1 className={styles.description}>Sentiment Analysis</h1>
               {isSubmitted &&
@@ -209,6 +201,16 @@ const Home: NextPage = () => {
                     )}
                   </div>
                 ))}
+            </div>
+
+            <div className={styles.summary}>
+              <h2 className={styles.description}>Word Cloud</h2>
+              {/* Using <img> as a workaround to Next.js port fetching */}
+              <img
+                src={getWordCloud(files[0].name)}
+                alt={`${files[0].name}-word-cloud`}
+                style={{ width: "40%", height: "auto" }}
+              />
             </div>
           </div>
         )}
