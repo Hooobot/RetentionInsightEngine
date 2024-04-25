@@ -186,7 +186,7 @@ def generate_word_cloud(text, filename):
     output_path = os.path.join(output_folder, wordcloud_name)
 
     # Create word cloud
-    wordcloud = WordCloud(width=800, height=400, background_color ='white').generate_from_frequencies(freq_dist)
+    wordcloud = WordCloud(width=500, height=500, background_color ='white').generate_from_frequencies(freq_dist)
     wordcloud.to_file(output_path)
     # Display the WordCloud
     # plt.figure(figsize=(10, 5))

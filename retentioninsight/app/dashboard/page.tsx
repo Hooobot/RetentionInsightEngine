@@ -58,16 +58,29 @@ const Dashboard: NextPage = () => {
     return fileName.replace(/\.[^/.]+$/, "").replace(/[()]/g, "");
   };
 
+  // Filter functionality
+  const excludedWords = ["we", "you", "thank", "hello"];
+  // const excludedWords = ["xxx", "zzz"];
+  const containsExcludedWord = (sentence: string) => {
+    const words = sentence.toLowerCase().split(/\b/); // Split sentence into words based on word boundaries
+    return excludedWords.some((excludedWord) =>
+      words.includes(excludedWord.toLowerCase())
+    );
+  };
+  const filterSentiments = (sentiments: SentimentItem[]) => {
+    return sentiments.filter((item) => !containsExcludedWord(item.sentence));
+  };
+
   // Extracting sentiment data for the selected file
   const sentiments = (selectedFile && data[selectedFile]?.sentiment) || [];
-  const negativeSentiments = sentiments.filter(
-    (item) => item.sentiment === "Negative"
+  const negativeSentiments = filterSentiments(
+    sentiments.filter((item) => item.sentiment === "Negative")
   );
-  const positiveSentiments = sentiments.filter(
-    (item) => item.sentiment === "Positive"
+  const positiveSentiments = filterSentiments(
+    sentiments.filter((item) => item.sentiment === "Positive")
   );
-  const neutralSentiments = sentiments.filter(
-    (item) => item.sentiment === "Neutral"
+  const neutralSentiments = filterSentiments(
+    sentiments.filter((item) => item.sentiment === "Neutral")
   );
 
   const sentimentCounts: Record<string, number> = {
