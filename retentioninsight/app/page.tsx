@@ -15,9 +15,10 @@ const Home: NextPage = () => {
   // State to hold uploaded files and submission status
   const [files, setFiles] = useState<File[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [transcription, setTranscription] = useState('');
+  const [transcription, setTranscription] = useState("");
   const [processed, setProcessed] = useState(true);
-  const [sentiment, setSentiment] = useState([]);
+  const [sentimentData, setSentimentData] = useState([]);
+
   const [sort, setSort] = useState<Array<Array<any>>>([]);
 
   // Handler for file drops
@@ -46,56 +47,66 @@ const Home: NextPage = () => {
 
   //used to check GET endpoints to Flask backend server
   function fetchData(file: File) {
-    console.log('processData called')
+    console.log("processData called");
 
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
-    fetch('http://localhost:5000/api/check', {
-      method: 'POST',
-      body: formData
+    fetch("http://localhost:5000/api/check", {
+      method: "POST",
+      body: formData,
     })
-    .then(response => response.json())
-      .then(data => console.log(data));
+      .then((response) => response.json())
+      .then((data) => console.log(data));
   }
 
   //function to run python conversion and summarization scripts in the backend
   function processData(file: File) {
-    console.log('processData called')
+    console.log("processData called");
 
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
-    fetch('http://localhost:5000/api/upload', {
-      method: 'POST',
-      body: formData
+    fetch("http://localhost:5000/api/upload", {
+      method: "POST",
+      body: formData,
     })
-    .then(response => response.json())
-      .then(data => {console.log(data); setSort(data.sorted); setIsSubmitted(true); getTranscription(file.name);})
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Filenames received:", data.file_names); // Check what filenames are being received
+        console.log(data);
+        setSentimentData(data.sentiments);
+        setIsSubmitted(true);
+        getTranscription(file.name);
+      });
   }
 
   function getTranscription(filename: string) {
-    let transcript = '';
-    let newFileName = filename.replace(/ /g, '_');
+    let transcript = "";
+    let newFileName = filename.replace(/ /g, "_");
     newFileName = newFileName.replace(/\.[^/.]+$/, "");
     newFileName = newFileName.replace(/[()]/g, "");
-    fetch(`http://localhost:5000/api/transcriptions/${newFileName}transcription.txt`)
-      .then(response => response.text())
-        .then(text => setTranscription(text));
+    fetch(
+      `http://localhost:5000/api/transcriptions/${newFileName}transcription.txt`
+    )
+      .then((response) => response.text())
+      .then((text) => setTranscription(text));
   }
 
   function getWordCloud(filename: string) {
-    let newFileName = filename.replace(/ /g, '_');
+    let newFileName = filename.replace(/ /g, "_");
     newFileName = newFileName.replace(/(\.[^/.]+)$/, "");
     newFileName = newFileName.replace(/[()]/g, "");
-    return (`http://localhost:5000/api/word-clouds/${newFileName}wordcloud.png`);
+    return `http://localhost:5000/api/word-clouds/${newFileName}wordcloud.png`;
   }
 
   function getEntityExtractions(filename: string) {
     let newFileName = filename.replace(/\.[^/.]+$/, "");
-    fetch(`http://localhost:5000/api/entity-extractions/${newFileName}entityextractions.txt`)
-    .then(response => response.json())
-    .then(data => console.log(data));
+    fetch(
+      `http://localhost:5000/api/entity-extractions/${newFileName}entityextractions.txt`
+    )
+      .then((response) => response.json())
+      .then((data) => console.log(data));
   }
 
   return (
@@ -104,7 +115,7 @@ const Home: NextPage = () => {
         <title>Retention Insight Engine</title>
       </Head>
       <main className={styles.main}>
-        {(!processed && !isSubmitted) && <LoadingSpinner/>}
+        {!processed && !isSubmitted && <LoadingSpinner />}
         <Image src={logo} alt="Retention Insight Engine" />
         <h1 className={styles.title}>Retention Insight Engine</h1>
         <div
@@ -128,7 +139,7 @@ const Home: NextPage = () => {
             <ul>
               {files.map((file) => (
                 <li key={file.name}>
-                  {file.name} - {(file.size * (10**-6)).toFixed(2)} MB
+                  {file.name} - {(file.size * 10 ** -6).toFixed(2)} MB
                 </li>
               ))}
             </ul>
@@ -141,7 +152,7 @@ const Home: NextPage = () => {
             </button>
           </aside>
         )}
-        {isSubmitted ? 
+        {isSubmitted && (
           <div>
             <div className={styles.summary}>
               <h2 className={styles.description}>Transcription</h2>
@@ -149,32 +160,36 @@ const Home: NextPage = () => {
             </div>
             <div className={styles.summary}>
               <h2 className={styles.description}>Word Cloud</h2>
-              <Image src={getWordCloud(files[0].name)} width={800} height={400} alt={`${files[0].name}-word-cloud`}/>
+              <Image
+                src={getWordCloud(files[0].name)}
+                width={800}
+                height={400}
+                alt={`${files[0].name}-word-cloud`}
+              />
             </div>
             <div className={styles.summary}>
-              <h1 className={styles.description}>Sorted Sentiment Analysis</h1>
-              {sort && sort.map((s,i) => {
-                const labels = ['Negative', 'Neutral', 'Positive']
-                return(
-                    <div key={s[0]} className={styles.summary}>
-                      <h2 className={styles.description}>{labels[i]}</h2>
-                      {s.map((m) => {
-                        return(
-                            <div key={m[0]} className={styles.summary}>
-                              <h2 className={styles.description}>Sentence: {m[0]}</h2>
-                              <h2 className={styles.description}>Score: {m[1]['score']}</h2>
-                            </div>
-                        )
-                      })}
-                      </div>
-                    )
-                })}
+              <h1 className={styles.description}>Sentiment Analysis</h1>
+              {sentimentData.map(
+                (
+                  item: { sentence: string; sentiment: string; score: number },
+                  index: number
+                ) => (
+                  <div key={index} className={styles.summary}>
+                    <h2 className={styles.description}>
+                      Sentence: {item.sentence}
+                    </h2>
+                    <h2 className={styles.description}>
+                      Sentiment: {item.sentiment}
+                    </h2>
+                    <h2 className={styles.description}>
+                      Score: {item.score.toFixed(2)}
+                    </h2>
+                  </div>
+                )
+              )}
             </div>
-
           </div>
-        :
-        <div>
-          </div>}
+        )}
       </main>
     </div>
   );
