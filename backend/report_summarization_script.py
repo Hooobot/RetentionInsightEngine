@@ -194,44 +194,34 @@ def generate_word_cloud(text, filename):
     # plt.axis('off')
     # plt.show()
 
-def sort_sentiment(sentiment_list):
-    negative = []
-    neutral = []
-    positive = []
-
-    for sentiment in sentiment_list:
-        if sentiment[1]['label'] == 'LABEL_0':
-            negative.append(sentiment)
-        elif sentiment[1]['label'] == 'LABEL_1':
-            neutral.append(sentiment)
-        elif sentiment[1]['label'] == 'LABEL_2':
-            positive.append(sentiment)
-
-    sort_negative = sorted(negative, key=lambda p: p[1]['score'], reverse=True)
-    sort_neutral = sorted(neutral, key=lambda p: p[1]['score'], reverse=True)
-    sort_positive = sorted(positive, key=lambda p: p[1]['score'], reverse=True)
-    return [sort_negative, sort_neutral, sort_positive]
-
 def save_sentiments_to_json(sentiments, filename):
-    # Extract sentiments for each category
-    negative_sentiments = sentiments[0]
-    neutral_sentiments = sentiments[1]
-    positive_sentiments = sentiments[2]
-
-    # Structure sentiments into a dictionary with keys for each category
-    data = {
-        "negative": negative_sentiments,
-        "neutral": neutral_sentiments,
-        "positive": positive_sentiments
-    }
-
     output_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sentiments')
     if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
+        os.makedirs(output_folder)
 
-    json_name = filename+ "sentiments.json"
+    json_name = filename + "_sentiments.json"
     output_path = os.path.join(output_folder, json_name)
 
-    # Save the structured sentiments to a JSON file
     with open(output_path, 'w') as json_file:
-        json.dump(data, json_file, indent=4)
+        json.dump(sentiments, json_file, indent=4)
+
+
+def generate_sentiment_json(results):
+    label_map = {
+        'LABEL_0': ('Negative', 3),
+        'LABEL_1': ('Neutral', 2),
+        'LABEL_2': ('Positive', 1)
+    }
+
+    # Sort results by custom order defined in label_map and then by score within each label
+    sorted_results = sorted(results, key=lambda x: (label_map[x[1]['label']][1], -x[1]['score']))
+
+    json_output = []
+    for sentence, result in sorted_results:
+        json_output.append({
+            "sentence": sentence,
+            "sentiment": label_map[result['label']][0],
+            "score": result['score']
+        })
+
+    return json_output
