@@ -97,12 +97,9 @@ def upload_file():
     if request.method == 'GET':
         return jsonify({'file_names': TRANSCRIPTION_NAMES}), 200
     elif request.method == 'POST':
-        # Check if the post request has the file part
         if 'file' not in request.files:
             return jsonify(error='No file part'), 400
         file = request.files['file']
-
-        # If user does not select file, browser also submits an empty part without filename
         if file.filename == '':
             return jsonify(error='No selected file'), 400
         if file and allowed_file(file.filename):
@@ -112,12 +109,7 @@ def upload_file():
                 os.makedirs(TRANSCRIPTION_FOLDER)
             filename = secure_filename(file.filename)
             new_file_name, file_extension = os.path.splitext(filename)
-
-            if file_extension != '.txt':
-                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            elif file_extension == '.txt':
-                filepath = os.path.join(TRANSCRIPTION_FOLDER, new_file_name + 'transcription.txt')
-
+            filepath = os.path.join(TRANSCRIPTION_FOLDER if file_extension == '.txt' else UPLOAD_FOLDER, filename)
             try:
                 file.save(filepath)
             except Exception as e:
@@ -126,44 +118,25 @@ def upload_file():
 
             try:
                 if file_extension != '.txt':
-                    
                     converted_file = report_summarization_script.convert_and_chunk_audio(filepath)
                     transcribed_text = report_summarization_script.parallel_transcribe_audio(converted_file)
                     punctuated_text = report_summarization_script.add_punctuations(transcribed_text, filename)
-
                     sentiment_results = report_summarization_script.analyze_sentiment(punctuated_text)
-                    # top_results = sorted(sentiment_results, key=lambda x: x[1]['score'], reverse=True)[:100]
-
-                    sorted_results = report_summarization_script.sort_sentiment(sentiment_results)
-                    relevant_entities = report_summarization_script.extract_entities(punctuated_text, filename)
-
-                    report_summarization_script.generate_word_cloud(punctuated_text, filename)
-
-                    if filename not in TRANSCRIPTION_NAMES:
-                        TRANSCRIPTION_NAMES.append(os.path.splitext(filename)[0])
-
-                    report_summarization_script.save_sentiments_to_json(sorted_results, os.path.splitext(filename)[0])
-
-                    return jsonify({'sorted': sorted_results}), 200
-                elif file_extension == '.txt':
+                    json_output = report_summarization_script.generate_sentiment_json(sentiment_results)  # Using the new function
+                else:
                     transcript = report_summarization_script.read_text_file(filepath)
-                    
                     sentiment_results = report_summarization_script.analyze_sentiment(transcript)
-                    sorted_results = report_summarization_script.sort_sentiment(sentiment_results)
-                    report_summarization_script.generate_word_cloud(transcript, filename)
+                    json_output = report_summarization_script.generate_sentiment_json(sentiment_results)  # Using the new function
 
-                    if filename not in TRANSCRIPTION_NAMES:
-                        TRANSCRIPTION_NAMES.append(os.path.splitext(filename)[0])
-
-                    report_summarization_script.save_sentiments_to_json(sorted_results, os.path.splitext(filename)[0])
-
-                    return jsonify({'sorted': sorted_results}), 200
+                if filename not in TRANSCRIPTION_NAMES:
+                    TRANSCRIPTION_NAMES.append(os.path.splitext(filename)[0])
+                report_summarization_script.save_sentiments_to_json(json_output, os.path.splitext(filename)[0])  # Saving JSON output instead of sorting
+                return jsonify({'sentiments': json_output}), 200
             except Exception as e:
                 return jsonify({'error': str(e)}), 500
-
-            return jsonify(message=f'File {filename} uploaded successfully'), 200
         else:
             return jsonify(error='File type not allowed'), 400
+
 
 @app.route('/', methods=['GET'])
 def app_check():
