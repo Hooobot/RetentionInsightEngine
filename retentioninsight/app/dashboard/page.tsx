@@ -99,20 +99,31 @@ const Dashboard: NextPage = () => {
         <title>Dashboard</title>
       </Head>
       <main className={styles.mainContent}>
-        <div className={styles.fileSearchContainer}>
-          <select
-            onChange={(e) => setSelectedFile(e.target.value)}
-            value={selectedFile}
-          >
-            {Object.keys(data).map((fileName) => (
-              <option key={fileName} value={fileName}>
-                {fileName}
-              </option>
-            ))}
-          </select>
-          <input className={styles.searchBar} placeholder="Search..." />
+        {/* File Selection Dropdown and Transcription Display */}
+        <div className={`${styles.fileSearchContainer} ${styles.box}`}>
+          <div className={styles.fileSelector}>
+            <label htmlFor="fileSelect">Select a File:</label>
+            <select
+              id="fileSelect"
+              onChange={(e) => setSelectedFile(e.target.value)}
+              value={selectedFile}
+            >
+              {Object.keys(data).map((fileName) => (
+                <option key={fileName} value={fileName}>
+                  {fileName}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className={styles.transcriptionContainer}>
+            <h2>Transcription</h2>
+            <p className={styles.transcriptionText}>
+              {data[selectedFile]?.transcription}
+            </p>
+          </div>
         </div>
 
+        {/* Charts and Word Cloud */}
         <div className={styles.chartsContainer}>
           <h2>Overall Sentiment</h2>
           <div
@@ -140,25 +151,25 @@ const Dashboard: NextPage = () => {
 
         <div className={styles.sentimentsContainer}>
           <div className={styles.positiveSentiments}>
-            <h2>Positive</h2>
+            <h2 style={{ color: "#a6e3a1" }}>Positive</h2>
             {positiveSentiments.map((item, index) => (
-              <div key={index}>
+              <div key={index} className={styles.positiveSentimentItem}>
                 <p>{item.sentence}</p>
               </div>
             ))}
           </div>
           <div className={styles.neutralSentiments}>
-            <h2>Neutral</h2>
+            <h2 style={{ color: "#cdd6f4" }}>Neutral</h2>
             {neutralSentiments.map((item, index) => (
-              <div key={index}>
+              <div key={index} className={styles.neutralSentimentItem}>
                 <p>{item.sentence}</p>
               </div>
             ))}
           </div>
           <div className={styles.negativeSentiments}>
-            <h2>Negative</h2>
+            <h2 style={{ color: "#f38ba8" }}>Negative</h2>
             {negativeSentiments.map((item, index) => (
-              <div key={index}>
+              <div key={index} className={styles.negativeSentimentItem}>
                 <p>{item.sentence}</p>
               </div>
             ))}
