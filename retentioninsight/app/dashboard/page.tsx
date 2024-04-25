@@ -128,16 +128,14 @@ const Dashboard: NextPage = () => {
             <div className={styles.sentimentChartInner}></div>
           </div>
 
-          <div className={styles.wordCloud}>
-            <h2>Word Cloud</h2>
-            {selectedFile && (
-              <img
-                src={data[selectedFile]?.wordCloudUrl}
-                alt={`${selectedFile} Word Cloud`}
-                className={styles.wordCloudImage}
-              />
-            )}
-          </div>
+          <h2>Word Cloud</h2>
+          {selectedFile && (
+            <img
+              src={data[selectedFile]?.wordCloudUrl}
+              alt={`${selectedFile} Word Cloud`}
+              className={styles.wordCloudImage}
+            />
+          )}
         </div>
 
         <div className={styles.sentimentsContainer}>

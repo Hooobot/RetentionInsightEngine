@@ -17,11 +17,6 @@
   padding: 16px;
 }
 
-.fileSearchContainer {
-  grid-column: 1 / 2;
-  /* Additional styles for file selection/search container */
-}
-
 .chartsContainer {
   grid-column: 2 / 3;
   display: flex;
@@ -34,7 +29,7 @@
   width: 150px;
   height: 150px;
   border-radius: 50%;
-  margin-bottom: 1rem;
+  margin-bottom: 5rem;
 }
 
 /* The inner circle to create the doughnut effect */
@@ -48,31 +43,48 @@
   border-radius: 50%;
   z-index: 1;
 }
+.box {
+  background-color: #2c2c34;
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.fileSearchContainer,
+.chartsContainer,
+.sentimentsContainer {
+  background-color: #2c2c34;
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
 
 .wordCloud {
-  /* Ensure similarity to sentiment chart */
-
-  border-radius: 50%;
-  margin-bottom: 1rem;
-
-  /* Styles for the word cloud */
-}
-
-.sentimentsContainer {
-  grid-column: 3 / 4;
-  /* Styles for sentiments container */
-}
-
-.negativeSentiments,
-.positiveSentiments,
-.neutralSentiments {
-  /* Styles for sentiment listings */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #2c2c34;
+  border-radius: 15px;
+  overflow: hidden;
+  padding: 20px;
+  margin-bottom: 20px;
 }
 
 .wordCloudImage {
   max-width: 100%;
   height: auto;
-  /* Styling for the word cloud image */
+  display: block;
+}
+
+/* Style adjustments for sentiment listings to match new box styles */
+.negativeSentiments,
+.positiveSentiments,
+.neutralSentiments {
+  background-color: #2c2c34;
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 20px;
+  color: white;
 }
 
 /* Main CSS  */
