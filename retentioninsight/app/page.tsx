@@ -31,7 +31,8 @@ const Home: NextPage = () => {
   const handleSubmit = () => {
     // Implement your submission logic here
     setProcessed(false);
-    processData(files[0]);
+    // Pass the array of files instead of a single file
+    processData(files);
     // fetchData(files[0]);
   };
 
@@ -61,11 +62,10 @@ const Home: NextPage = () => {
   }
 
   //function to run python conversion and summarization scripts in the backend
-  function processData(file: File) {
+  function processData(files: File[]) {
     console.log("processData called");
-
     const formData = new FormData();
-    formData.append("file", file);
+    files.forEach((file) => formData.append("file", file)); // Append each file to form data
 
     fetch("http://localhost:5000/api/upload", {
       method: "POST",
@@ -73,11 +73,24 @@ const Home: NextPage = () => {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log("Filenames received:", data.file_names); // Check what filenames are being received
-        console.log(data);
-        setSentimentData(data.sentiments);
-        setIsSubmitted(true);
-        getTranscription(file.name);
+        console.log("Data received:", data);
+
+        // Check the number of files processed
+        if (files.length === 1) {
+          // Handle a single file (set the state to display the results)
+          const newSentimentData = data.sentiments || []; // Fallback to an empty array if undefined
+          setSentimentData(newSentimentData);
+          setIsSubmitted(true);
+          setProcessed(true);
+          getTranscription(files[0].name);
+        } else {
+          // Redirect to the dashboard for multiple files WITHOUT router
+          window.location.href = "/dashboard";
+        }
+      })
+      .catch((error) => {
+        console.error("Error processing files:", error);
+        setProcessed(true); // Stop showing the loading spinner on error
       });
   }
 
@@ -86,9 +99,7 @@ const Home: NextPage = () => {
     let newFileName = filename.replace(/ /g, "_");
     newFileName = newFileName.replace(/\.[^/.]+$/, "");
     newFileName = newFileName.replace(/[()]/g, "");
-    fetch(
-      `http://localhost:5000/api/transcriptions/${newFileName}transcription.txt`
-    )
+    fetch(`http://localhost:5000/api/transcriptions/${newFileName}.txt`)
       .then((response) => response.text())
       .then((text) => setTranscription(text));
   }
@@ -169,24 +180,33 @@ const Home: NextPage = () => {
             </div>
             <div className={styles.summary}>
               <h1 className={styles.description}>Sentiment Analysis</h1>
-              {sentimentData.map(
-                (
-                  item: { sentence: string; sentiment: string; score: number },
-                  index: number
-                ) => (
-                  <div key={index} className={styles.summary}>
+              {isSubmitted &&
+                Array.isArray(sentimentData) &&
+                sentimentData.map((fileData, fileIndex) => (
+                  <div key={fileIndex}>
                     <h2 className={styles.description}>
-                      Sentence: {item.sentence}
+                      {(fileData as { filename: string }).filename}
                     </h2>
-                    <h2 className={styles.description}>
-                      Sentiment: {item.sentiment}
-                    </h2>
-                    <h2 className={styles.description}>
-                      Score: {item.score.toFixed(2)}
-                    </h2>
+                    {((fileData as { sentiments: any[] }).sentiments || []).map(
+                      (item, index) => (
+                        <div key={index} className={styles.summary}>
+                          <p className={styles.description}>
+                            Sentence: {item.sentence}
+                          </p>
+                          <p className={styles.description}>
+                            Sentiment: {item.sentiment}
+                          </p>
+                          <p className={styles.description}>
+                            Score:{" "}
+                            {typeof item.score === "number"
+                              ? item.score.toFixed(2)
+                              : "N/A"}
+                          </p>
+                        </div>
+                      )
+                    )}
                   </div>
-                )
-              )}
+                ))}
             </div>
           </div>
         )}
