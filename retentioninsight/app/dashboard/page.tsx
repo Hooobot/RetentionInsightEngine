@@ -1,16 +1,15 @@
+// Dashboard.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
 import type { NextPage } from "next";
 import Head from "next/head";
-import Image from "next/image";
-import styles from "../styles/Home.module.css";
+import styles from "../styles/Dashboard.module.css";
 
 interface SentimentItem {
   sentence: string;
   sentiment: string;
   score: number;
-  color?: string; // Optional, if you want to use color for visual cues
 }
 
 interface Data {
@@ -20,14 +19,16 @@ interface Data {
 }
 
 const Dashboard: NextPage = () => {
+  const [selectedFile, setSelectedFile] = useState<string>("");
   const [data, setData] = useState<Record<string, Data>>({});
 
   useEffect(() => {
-    // Fetch file names and initialize data fetching for each file
     fetch("http://localhost:5000/api/upload")
       .then((response) => response.json())
       .then((data) => {
-        data.file_names.forEach((fileName: string) => {
+        const fileNames: string[] = data.file_names;
+        setSelectedFile(fileNames[0]); // Automatically select the first file
+        fileNames.forEach((fileName: string) => {
           fetchDataForFile(fileName);
         });
       });
@@ -54,55 +55,117 @@ const Dashboard: NextPage = () => {
   };
 
   const sanitizeFileName = (fileName: string) => {
-    return (
-      fileName
-        //   .replace(/ /g, "_")
-        .replace(/\.[^/.]+$/, "")
-        .replace(/[()]/g, "")
-    );
+    return fileName.replace(/\.[^/.]+$/, "").replace(/[()]/g, "");
   };
 
+  // Extracting sentiment data for the selected file
+  const sentiments = (selectedFile && data[selectedFile]?.sentiment) || [];
+  const negativeSentiments = sentiments.filter(
+    (item) => item.sentiment === "Negative"
+  );
+  const positiveSentiments = sentiments.filter(
+    (item) => item.sentiment === "Positive"
+  );
+  const neutralSentiments = sentiments.filter(
+    (item) => item.sentiment === "Neutral"
+  );
+
+  const sentimentCounts: Record<string, number> = {
+    Positive: 0,
+    Negative: 0,
+    Neutral: 0,
+  };
+
+  // Calculate counts for each sentiment
+  data[selectedFile]?.sentiment.forEach((item) => {
+    sentimentCounts[item.sentiment] += 1;
+  });
+
+  const totalSentiments =
+    sentimentCounts.Positive +
+    sentimentCounts.Negative +
+    sentimentCounts.Neutral;
+  const positiveDegrees = (sentimentCounts.Positive / totalSentiments) * 360;
+  const negativeDegrees = (sentimentCounts.Negative / totalSentiments) * 360;
+  const neutralDegrees = (sentimentCounts.Neutral / totalSentiments) * 360;
+
+  // Compute the stops for the conic-gradient
+  const positiveStop = positiveDegrees;
+  const negativeStop = positiveStop + negativeDegrees;
+
   return (
-    <div>
+    <div className={styles.dashboardContainer}>
       <Head>
         <title>Dashboard</title>
       </Head>
-      <main className={styles.main}>
-        {Object.keys(data).map((fileName) => (
-          <div key={fileName} className={styles.summary}>
-            <h1 className={styles.description}>{fileName}</h1>
-            <div>
-              <h2 className={styles.description}>Transcription</h2>
-              <p>{data[fileName].transcription}</p>
-            </div>
-            <div>
-              <h2 className={styles.description}>Sentiments</h2>
-              {data[fileName].sentiment.map((item, index) => (
-                <div key={index} className={styles.summary}>
-                  <h3 className={styles.description}>
-                    Sentence: {item.sentence}
-                  </h3>
-                  <h3 className={styles.description}>
-                    Sentiment: {item.sentiment}
-                  </h3>
-                  <h3 className={styles.description}>
-                    Score: {item.score.toFixed(2)}
-                  </h3>
-                </div>
-              ))}
-            </div>
-            <div>
-              <h2 className={styles.description}>Word Cloud</h2>
-              {/* Using <img> as a workaround to Next.js port fetching */}
-              <img
-                src={data[fileName].wordCloudUrl}
-                alt="Word Cloud"
-                width="800"
-                height="400"
-              />
-            </div>
+      <main className={styles.mainContent}>
+        <div className={styles.fileSearchContainer}>
+          <select
+            onChange={(e) => setSelectedFile(e.target.value)}
+            value={selectedFile}
+          >
+            {Object.keys(data).map((fileName) => (
+              <option key={fileName} value={fileName}>
+                {fileName}
+              </option>
+            ))}
+          </select>
+          <input className={styles.searchBar} placeholder="Search..." />
+        </div>
+
+        <div className={styles.chartsContainer}>
+          <h2>Overall Sentiment</h2>
+          <div
+            className={styles.sentimentChart}
+            style={{
+              background: `conic-gradient(
+        #4caf50 0deg ${positiveStop}deg, 
+        #f44336 ${positiveStop}deg ${negativeStop}deg,
+        #ffeb3b ${negativeStop}deg 360deg
+      )`,
+            }}
+          >
+            <div className={styles.sentimentChartInner}></div>
           </div>
-        ))}
+
+          <div className={styles.wordCloud}>
+            <h2>Word Cloud</h2>
+            {selectedFile && (
+              <img
+                src={data[selectedFile]?.wordCloudUrl}
+                alt={`${selectedFile} Word Cloud`}
+                className={styles.wordCloudImage}
+              />
+            )}
+          </div>
+        </div>
+
+        <div className={styles.sentimentsContainer}>
+          <div className={styles.positiveSentiments}>
+            <h2>Positive</h2>
+            {positiveSentiments.map((item, index) => (
+              <div key={index}>
+                <p>{item.sentence}</p>
+              </div>
+            ))}
+          </div>
+          <div className={styles.neutralSentiments}>
+            <h2>Neutral</h2>
+            {neutralSentiments.map((item, index) => (
+              <div key={index}>
+                <p>{item.sentence}</p>
+              </div>
+            ))}
+          </div>
+          <div className={styles.negativeSentiments}>
+            <h2>Negative</h2>
+            {negativeSentiments.map((item, index) => (
+              <div key={index}>
+                <p>{item.sentence}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </main>
     </div>
   );
