@@ -59,7 +59,7 @@ def get_image(filename):
 def get_extraction(filename):
     # Complete file path
     file_path = os.path.join(EXTRACTION_FOLDER, filename)
-    
+
     # Check if file exists
     if not os.path.isfile(file_path):
         return jsonify({'error': 'does not exist'}), 404
@@ -106,12 +106,14 @@ def upload_file():
     if request.method == 'GET':
         return jsonify({'file_names': TRANSCRIPTION_NAMES}), 200
     elif request.method == 'POST':
+        if not os.path.exists(UPLOAD_FOLDER):
+            os.makedirs(UPLOAD_FOLDER)
         files = request.files.getlist('file')
         if not files:
             return jsonify(error='No files part'), 400
-        
+
         response_data = []
-        
+
         for file in files:
             if file.filename == '':
                 continue  # Skip empty files
@@ -134,7 +136,7 @@ def upload_file():
                     transcript = report_summarization_script.read_text_file(filepath)
                     sentiment_results = report_summarization_script.analyze_sentiment(transcript)
                     report_summarization_script.generate_word_cloud(transcript, filename)
-                
+
                 json_output = report_summarization_script.generate_sentiment_json(sentiment_results)
                 report_summarization_script.save_sentiments_to_json(json_output, os.path.splitext(filename)[0])
                 response_data.append({'filename': filename, 'sentiments': json_output})
@@ -144,7 +146,7 @@ def upload_file():
 
             except Exception as e:
                 return jsonify({'error': str(e)}), 500
-        
+
         return jsonify(response_data), 200
 
 
